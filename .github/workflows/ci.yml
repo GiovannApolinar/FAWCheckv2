@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build
+        env:
+          NEXT_PUBLIC_API_BASE_URL: https://api.example.com
+
+      - name: Build migrator
+        run: dotnet build maize-drs-backend.Migrator/maize-drs-backend.Migrator.csproj
+
+      - name: Run backend tests
+        run: dotnet test maize-drs-backend.Tests/maize-drs-backend.Tests.csproj
+
+      - name: Install inference dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r maize-api/requirements.txt
+
+      - name: Run inference tests
+        run: pytest maize-api/tests -q

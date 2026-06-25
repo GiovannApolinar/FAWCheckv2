@@ -1,0 +1,74 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "value": "southeastasia"
+    },
+    "containerRegistryName": {
+      "value": "maizedrsacr"
+    },
+    "managedEnvironmentName": {
+      "value": "maize-drs-env"
+    },
+    "storageAccountName": {
+      "value": "maizedrsstorage"
+    },
+    "blobContainerName": {
+      "value": "assessment-images"
+    },
+    "sqlServerName": {
+      "value": "maize-drs-sql"
+    },
+    "sqlDatabaseName": {
+      "value": "MaizeDRS"
+    },
+    "sqlAdminLogin": {
+      "value": "maizedrsadmin"
+    },
+    "sqlAdminPassword": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/<subscription-id>/resourceGroups/<resource-group>/providers/Microsoft.KeyVault/vaults/<vault-name>"
+        },
+        "secretName": "azure-sql-admin-password"
+      }
+    },
+    "jwtKey": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/<subscription-id>/resourceGroups/<resource-group>/providers/Microsoft.KeyVault/vaults/<vault-name>"
+        },
+        "secretName": "maize-jwt-key"
+      }
+    },
+    "bootstrapAdminEmail": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/<subscription-id>/resourceGroups/<resource-group>/providers/Microsoft.KeyVault/vaults/<vault-name>"
+        },
+        "secretName": "maize-bootstrap-admin-email"
+      }
+    },
+    "bootstrapAdminPassword": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/<subscription-id>/resourceGroups/<resource-group>/providers/Microsoft.KeyVault/vaults/<vault-name>"
+        },
+        "secretName": "maize-bootstrap-admin-password"
+      }
+    },
+    "jwtIssuer": {
+      "value": "https://api.example.com"
+    },
+    "jwtAudience": {
+      "value": "https://app.example.com"
+    },
+    "publicAppBaseUrl": {
+      "value": "https://app.example.com"
+    },
+    "publicApiBaseUrl": {
+      "value": "https://api.example.com"
+    }
+  }
+}

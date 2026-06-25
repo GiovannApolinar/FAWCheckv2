@@ -1,0 +1,37 @@
+# Environment
+.env.local
+.env.*.local
+
+# Next.js
+.next/
+out/
+
+# Node
+node_modules/
+
+# .NET build artifacts
+maize-drs-backend/bin/
+maize-drs-backend/obj/
+maize-drs-backend.Tests/bin/
+maize-drs-backend.Tests/obj/
+*.user
+*.suo
+.vs/
+
+# Python
+maize-api/.venv/
+maize-api/__pycache__/
+maize-api/**/__pycache__/
+**/*.pyc
+
+# Dev secrets
+maize-drs-backend/dev-env.sh
+*.secret
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db

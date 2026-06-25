@@ -1,0 +1,6 @@
+@maize_drs_backend_HostAddress = https://api.example.com
+
+GET {{maize_drs_backend_HostAddress}}/health
+Accept: application/json
+
+###

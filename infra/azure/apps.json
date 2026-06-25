@@ -1,0 +1,478 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.42.1.51946",
+      "templateHash": "13587776020533435337"
+    }
+  },
+  "parameters": {
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Azure region for the Container Apps deployment."
+      }
+    },
+    "containerRegistryName": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure Container Registry name."
+      }
+    },
+    "managedEnvironmentName": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure Container Apps managed environment name."
+      }
+    },
+    "storageAccountName": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure Storage Account name used for assessment images."
+      }
+    },
+    "blobContainerName": {
+      "type": "string",
+      "defaultValue": "assessment-images",
+      "metadata": {
+        "description": "Private blob container name for assessment images."
+      }
+    },
+    "sqlServerName": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure SQL logical server name."
+      }
+    },
+    "sqlDatabaseName": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure SQL database name."
+      }
+    },
+    "sqlAdminLogin": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure SQL admin login name."
+      }
+    },
+    "sqlAdminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Azure SQL admin password."
+      }
+    },
+    "jwtKey": {
+      "type": "securestring",
+      "metadata": {
+        "description": "JWT signing key injected into the backend app."
+      }
+    },
+    "jwtIssuer": {
+      "type": "string",
+      "metadata": {
+        "description": "JWT issuer value for the backend app."
+      }
+    },
+    "jwtAudience": {
+      "type": "string",
+      "metadata": {
+        "description": "JWT audience value for the backend app."
+      }
+    },
+    "publicAppBaseUrl": {
+      "type": "string",
+      "metadata": {
+        "description": "Public base URL for the frontend app, such as https://app.example.com."
+      }
+    },
+    "publicApiBaseUrl": {
+      "type": "string",
+      "metadata": {
+        "description": "Public base URL for the backend app, such as https://api.example.com."
+      }
+    },
+    "frontendAppName": {
+      "type": "string",
+      "defaultValue": "maize-drs-frontend",
+      "metadata": {
+        "description": "Container App name for the frontend."
+      }
+    },
+    "backendAppName": {
+      "type": "string",
+      "defaultValue": "maize-drs-backend",
+      "metadata": {
+        "description": "Container App name for the backend."
+      }
+    },
+    "inferenceAppName": {
+      "type": "string",
+      "defaultValue": "maize-drs-inference",
+      "metadata": {
+        "description": "Container App name for the internal inference service."
+      }
+    },
+    "frontendImageRepository": {
+      "type": "string",
+      "defaultValue": "maize-drs-frontend",
+      "metadata": {
+        "description": "ACR repository name for the frontend image."
+      }
+    },
+    "backendImageRepository": {
+      "type": "string",
+      "defaultValue": "maize-drs-backend",
+      "metadata": {
+        "description": "ACR repository name for the backend image."
+      }
+    },
+    "inferenceImageRepository": {
+      "type": "string",
+      "defaultValue": "maize-drs-inference",
+      "metadata": {
+        "description": "ACR repository name for the inference image."
+      }
+    },
+    "frontendImageTag": {
+      "type": "string",
+      "defaultValue": "latest",
+      "metadata": {
+        "description": "Image tag to deploy for the frontend."
+      }
+    },
+    "backendImageTag": {
+      "type": "string",
+      "defaultValue": "latest",
+      "metadata": {
+        "description": "Image tag to deploy for the backend."
+      }
+    },
+    "inferenceImageTag": {
+      "type": "string",
+      "defaultValue": "latest",
+      "metadata": {
+        "description": "Image tag to deploy for the inference service."
+      }
+    }
+  },
+  "variables": {
+    "sqlConnectionString": "[format('Server=tcp:{0}.database.windows.net,1433;Initial Catalog={1};Persist Security Info=False;User ID={2};Password={3};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;', parameters('sqlServerName'), parameters('sqlDatabaseName'), parameters('sqlAdminLogin'), parameters('sqlAdminPassword'))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.App/containerApps",
+      "apiVersion": "2024-03-01",
+      "name": "[parameters('inferenceAppName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "managedEnvironmentId": "[resourceId('Microsoft.App/managedEnvironments', parameters('managedEnvironmentName'))]",
+        "configuration": {
+          "activeRevisionsMode": "Single",
+          "ingress": {
+            "external": false,
+            "targetPort": 5000,
+            "transport": "auto"
+          },
+          "registries": [
+            {
+              "server": "[reference(resourceId('Microsoft.ContainerRegistry/registries', parameters('containerRegistryName')), '2023-07-01').loginServer]",
+              "username": "[listCredentials(resourceId('Microsoft.ContainerRegistry/registries', parameters('containerRegistryName')), '2023-07-01').username]",
+              "passwordSecretRef": "acr-password"
+            }
+          ],
+          "secrets": [
+            {
+              "name": "acr-password",
+              "value": "[listCredentials(resourceId('Microsoft.ContainerRegistry/registries', parameters('containerRegistryName')), '2023-07-01').passwords[0].value]"
+            }
+          ]
+        },
+        "template": {
+          "containers": [
+            {
+              "name": "inference",
+              "image": "[format('{0}/{1}:{2}', reference(resourceId('Microsoft.ContainerRegistry/registries', parameters('containerRegistryName')), '2023-07-01').loginServer, parameters('inferenceImageRepository'), parameters('inferenceImageTag'))]",
+              "env": [
+                {
+                  "name": "PORT",
+                  "value": "5000"
+                }
+              ],
+              "probes": [
+                {
+                  "type": "Liveness",
+                  "httpGet": {
+                    "path": "/health",
+                    "port": 5000,
+                    "httpHeaders": []
+                  },
+                  "initialDelaySeconds": 20,
+                  "periodSeconds": 30
+                },
+                {
+                  "type": "Readiness",
+                  "httpGet": {
+                    "path": "/health",
+                    "port": 5000,
+                    "httpHeaders": []
+                  },
+                  "initialDelaySeconds": 10,
+                  "periodSeconds": 20
+                }
+              ],
+              "resources": {
+                "cpu": "[json('0.5')]",
+                "memory": "1Gi"
+              }
+            }
+          ],
+          "scale": {
+            "minReplicas": 1,
+            "maxReplicas": 2
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.App/containerApps",
+      "apiVersion": "2024-03-01",
+      "name": "[parameters('backendAppName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "managedEnvironmentId": "[resourceId('Microsoft.App/managedEnvironments', parameters('managedEnvironmentName'))]",
+        "configuration": {
+          "activeRevisionsMode": "Single",
+          "ingress": {
+            "external": true,
+            "targetPort": 8080,
+            "transport": "auto"
+          },
+          "registries": [
+            {
+              "server": "[reference(resourceId('Microsoft.ContainerRegistry/registries', parameters('containerRegistryName')), '2023-07-01').loginServer]",
+              "username": "[listCredentials(resourceId('Microsoft.ContainerRegistry/registries', parameters('containerRegistryName')), '2023-07-01').username]",
+              "passwordSecretRef": "acr-password"
+            }
+          ],
+          "secrets": [
+            {
+              "name": "acr-password",
+              "value": "[listCredentials(resourceId('Microsoft.ContainerRegistry/registries', parameters('containerRegistryName')), '2023-07-01').passwords[0].value]"
+            },
+            {
+              "name": "sql-connection-string",
+              "value": "[variables('sqlConnectionString')]"
+            },
+            {
+              "name": "jwt-key",
+              "value": "[parameters('jwtKey')]"
+            },
+            {
+              "name": "blob-connection-string",
+              "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1};EndpointSuffix={2}', parameters('storageAccountName'), listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName')), '2023-05-01').keys[0].value, environment().suffixes.storage)]"
+            }
+          ]
+        },
+        "template": {
+          "containers": [
+            {
+              "name": "backend",
+              "image": "[format('{0}/{1}:{2}', reference(resourceId('Microsoft.ContainerRegistry/registries', parameters('containerRegistryName')), '2023-07-01').loginServer, parameters('backendImageRepository'), parameters('backendImageTag'))]",
+              "env": [
+                {
+                  "name": "ASPNETCORE_ENVIRONMENT",
+                  "value": "Production"
+                },
+                {
+                  "name": "ConnectionStrings__Default",
+                  "secretRef": "sql-connection-string"
+                },
+                {
+                  "name": "Database__Provider",
+                  "value": "SqlServer"
+                },
+                {
+                  "name": "Database__AutoMigrate",
+                  "value": "false"
+                },
+                {
+                  "name": "Jwt__Key",
+                  "secretRef": "jwt-key"
+                },
+                {
+                  "name": "Jwt__Issuer",
+                  "value": "[parameters('jwtIssuer')]"
+                },
+                {
+                  "name": "Jwt__Audience",
+                  "value": "[parameters('jwtAudience')]"
+                },
+                {
+                  "name": "BlobStorage__Provider",
+                  "value": "AzureBlob"
+                },
+                {
+                  "name": "BlobStorage__ConnectionString",
+                  "secretRef": "blob-connection-string"
+                },
+                {
+                  "name": "BlobStorage__ContainerName",
+                  "value": "[parameters('blobContainerName')]"
+                },
+                {
+                  "name": "Inference__BaseUrl",
+                  "value": "[format('https://{0}', reference(resourceId('Microsoft.App/containerApps', parameters('inferenceAppName')), '2024-03-01').configuration.ingress.fqdn)]"
+                },
+                {
+                  "name": "Inference__PredictPath",
+                  "value": "/predict"
+                },
+                {
+                  "name": "Cors__AllowedOrigins__0",
+                  "value": "[parameters('publicAppBaseUrl')]"
+                }
+              ],
+              "probes": [
+                {
+                  "type": "Liveness",
+                  "httpGet": {
+                    "path": "/health",
+                    "port": 8080,
+                    "httpHeaders": []
+                  },
+                  "initialDelaySeconds": 25,
+                  "periodSeconds": 30
+                },
+                {
+                  "type": "Readiness",
+                  "httpGet": {
+                    "path": "/health",
+                    "port": 8080,
+                    "httpHeaders": []
+                  },
+                  "initialDelaySeconds": 10,
+                  "periodSeconds": 20
+                }
+              ],
+              "resources": {
+                "cpu": "[json('0.75')]",
+                "memory": "1.5Gi"
+              }
+            }
+          ],
+          "scale": {
+            "minReplicas": 1,
+            "maxReplicas": 3
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.App/containerApps', parameters('inferenceAppName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.App/containerApps",
+      "apiVersion": "2024-03-01",
+      "name": "[parameters('frontendAppName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "managedEnvironmentId": "[resourceId('Microsoft.App/managedEnvironments', parameters('managedEnvironmentName'))]",
+        "configuration": {
+          "activeRevisionsMode": "Single",
+          "ingress": {
+            "external": true,
+            "targetPort": 3000,
+            "transport": "auto"
+          },
+          "registries": [
+            {
+              "server": "[reference(resourceId('Microsoft.ContainerRegistry/registries', parameters('containerRegistryName')), '2023-07-01').loginServer]",
+              "username": "[listCredentials(resourceId('Microsoft.ContainerRegistry/registries', parameters('containerRegistryName')), '2023-07-01').username]",
+              "passwordSecretRef": "acr-password"
+            }
+          ],
+          "secrets": [
+            {
+              "name": "acr-password",
+              "value": "[listCredentials(resourceId('Microsoft.ContainerRegistry/registries', parameters('containerRegistryName')), '2023-07-01').passwords[0].value]"
+            }
+          ]
+        },
+        "template": {
+          "containers": [
+            {
+              "name": "frontend",
+              "image": "[format('{0}/{1}:{2}', reference(resourceId('Microsoft.ContainerRegistry/registries', parameters('containerRegistryName')), '2023-07-01').loginServer, parameters('frontendImageRepository'), parameters('frontendImageTag'))]",
+              "env": [
+                {
+                  "name": "NODE_ENV",
+                  "value": "production"
+                },
+                {
+                  "name": "NEXT_PUBLIC_API_BASE_URL",
+                  "value": "[parameters('publicApiBaseUrl')]"
+                }
+              ],
+              "probes": [
+                {
+                  "type": "Liveness",
+                  "httpGet": {
+                    "path": "/api/health",
+                    "port": 3000,
+                    "httpHeaders": []
+                  },
+                  "initialDelaySeconds": 20,
+                  "periodSeconds": 30
+                },
+                {
+                  "type": "Readiness",
+                  "httpGet": {
+                    "path": "/api/health",
+                    "port": 3000,
+                    "httpHeaders": []
+                  },
+                  "initialDelaySeconds": 10,
+                  "periodSeconds": 20
+                }
+              ],
+              "resources": {
+                "cpu": "[json('0.5')]",
+                "memory": "1Gi"
+              }
+            }
+          ],
+          "scale": {
+            "minReplicas": 1,
+            "maxReplicas": 2
+          }
+        }
+      }
+    }
+  ],
+  "outputs": {
+    "frontendConfiguredUrl": {
+      "type": "string",
+      "value": "[parameters('publicAppBaseUrl')]"
+    },
+    "apiConfiguredUrl": {
+      "type": "string",
+      "value": "[parameters('publicApiBaseUrl')]"
+    },
+    "frontendContainerAppFqdn": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.App/containerApps', parameters('frontendAppName')), '2024-03-01').configuration.ingress.fqdn]"
+    },
+    "backendContainerAppFqdn": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.App/containerApps', parameters('backendAppName')), '2024-03-01').configuration.ingress.fqdn]"
+    },
+    "inferenceContainerAppFqdn": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.App/containerApps', parameters('inferenceAppName')), '2024-03-01').configuration.ingress.fqdn]"
+    }
+  }
+}

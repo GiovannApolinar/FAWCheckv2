@@ -1,0 +1,187 @@
+name: Deploy Azure
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      AZURE_LOCATION: ${{ vars.AZURE_LOCATION || 'southeastasia' }}
+      AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+      AZURE_CONTAINER_REGISTRY_NAME: ${{ vars.AZURE_CONTAINER_REGISTRY_NAME }}
+      AZURE_MANAGED_ENVIRONMENT_NAME: ${{ vars.AZURE_MANAGED_ENVIRONMENT_NAME }}
+      AZURE_LOG_ANALYTICS_WORKSPACE_NAME: ${{ vars.AZURE_LOG_ANALYTICS_WORKSPACE_NAME }}
+      AZURE_STORAGE_ACCOUNT_NAME: ${{ vars.AZURE_STORAGE_ACCOUNT_NAME }}
+      AZURE_SQL_SERVER_NAME: ${{ vars.AZURE_SQL_SERVER_NAME }}
+      AZURE_SQL_DATABASE_NAME: ${{ vars.AZURE_SQL_DATABASE_NAME }}
+      AZURE_FRONTEND_APP_NAME: ${{ vars.AZURE_FRONTEND_APP_NAME }}
+      AZURE_BACKEND_APP_NAME: ${{ vars.AZURE_BACKEND_APP_NAME }}
+      AZURE_INFERENCE_APP_NAME: ${{ vars.AZURE_INFERENCE_APP_NAME }}
+      AZURE_PUBLIC_APP_BASE_URL: ${{ vars.AZURE_PUBLIC_APP_BASE_URL }}
+      AZURE_PUBLIC_API_BASE_URL: ${{ vars.AZURE_PUBLIC_API_BASE_URL }}
+      AZURE_SQL_DATABASE_SKU_NAME: ${{ vars.AZURE_SQL_DATABASE_SKU_NAME || 'Basic' }}
+      AZURE_SQL_DATABASE_SKU_TIER: ${{ vars.AZURE_SQL_DATABASE_SKU_TIER || 'Basic' }}
+      RUN_LEGACY_IMPORT: ${{ vars.RUN_LEGACY_IMPORT || 'false' }}
+      LEGACY_MONGODB_DATABASE_NAME: ${{ vars.LEGACY_MONGODB_DATABASE_NAME }}
+      LEGACY_MONGODB_USER_COLLECTION_NAME: ${{ vars.LEGACY_MONGODB_USER_COLLECTION_NAME || 'Users' }}
+      LEGACY_MONGODB_ASSESSMENT_COLLECTION_NAME: ${{ vars.LEGACY_MONGODB_ASSESSMENT_COLLECTION_NAME || 'Assessments' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Validate required deployment variables
+        run: |
+          test -n "$AZURE_RESOURCE_GROUP"
+          test -n "$AZURE_CONTAINER_REGISTRY_NAME"
+          test -n "$AZURE_MANAGED_ENVIRONMENT_NAME"
+          test -n "$AZURE_LOG_ANALYTICS_WORKSPACE_NAME"
+          test -n "$AZURE_STORAGE_ACCOUNT_NAME"
+          test -n "$AZURE_SQL_SERVER_NAME"
+          test -n "$AZURE_SQL_DATABASE_NAME"
+          test -n "$AZURE_FRONTEND_APP_NAME"
+          test -n "$AZURE_BACKEND_APP_NAME"
+          test -n "$AZURE_INFERENCE_APP_NAME"
+          test -n "$AZURE_PUBLIC_APP_BASE_URL"
+          test -n "$AZURE_PUBLIC_API_BASE_URL"
+          test -n "${{ secrets.AZURE_BOOTSTRAP_ADMIN_EMAIL }}"
+          test -n "${{ secrets.AZURE_BOOTSTRAP_ADMIN_PASSWORD }}"
+
+      - name: Validate optional legacy import settings
+        if: env.RUN_LEGACY_IMPORT == 'true'
+        run: |
+          test -n "${{ secrets.LEGACY_MONGODB_CONNECTION_STRING }}"
+          test -n "$LEGACY_MONGODB_DATABASE_NAME"
+
+      - name: Ensure resource group exists
+        run: az group create --name "$AZURE_RESOURCE_GROUP" --location "$AZURE_LOCATION"
+
+      - name: Deploy shared Azure foundation
+        run: |
+          az deployment group create \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --template-file infra/azure/foundation.bicep \
+            --parameters \
+              location="$AZURE_LOCATION" \
+              containerRegistryName="$AZURE_CONTAINER_REGISTRY_NAME" \
+              managedEnvironmentName="$AZURE_MANAGED_ENVIRONMENT_NAME" \
+              logAnalyticsWorkspaceName="$AZURE_LOG_ANALYTICS_WORKSPACE_NAME" \
+              storageAccountName="$AZURE_STORAGE_ACCOUNT_NAME" \
+              sqlServerName="$AZURE_SQL_SERVER_NAME" \
+              sqlDatabaseName="$AZURE_SQL_DATABASE_NAME" \
+              sqlAdminLogin="${{ secrets.AZURE_SQL_ADMIN_LOGIN }}" \
+              sqlAdminPassword="${{ secrets.AZURE_SQL_ADMIN_PASSWORD }}" \
+              sqlDatabaseSkuName="$AZURE_SQL_DATABASE_SKU_NAME" \
+              sqlDatabaseSkuTier="$AZURE_SQL_DATABASE_SKU_TIER" \
+            --query properties.outputs > foundation-outputs.json
+
+      - name: Export foundation outputs
+        run: |
+          echo "ACR_LOGIN_SERVER=$(jq -r '.containerRegistryLoginServer.value' foundation-outputs.json)" >> "$GITHUB_ENV"
+          echo "SQL_CONNECTION_STRING=Server=tcp:${AZURE_SQL_SERVER_NAME}.database.windows.net,1433;Initial Catalog=${AZURE_SQL_DATABASE_NAME};Persist Security Info=False;User ID=${{ secrets.AZURE_SQL_ADMIN_LOGIN }};Password=${{ secrets.AZURE_SQL_ADMIN_PASSWORD }};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;" >> "$GITHUB_ENV"
+
+      - name: Resolve Blob storage connection string
+        run: |
+          echo "BLOB_CONNECTION_STRING=$(az storage account show-connection-string --name "$AZURE_STORAGE_ACCOUNT_NAME" --resource-group "$AZURE_RESOURCE_GROUP" --query connectionString -o tsv)" >> "$GITHUB_ENV"
+
+      - name: Login to Azure Container Registry
+        run: az acr login --name "$AZURE_CONTAINER_REGISTRY_NAME"
+
+      - name: Build and push frontend image
+        run: |
+          docker build -f Dockerfile.frontend -t "$ACR_LOGIN_SERVER/maize-drs-frontend:${GITHUB_SHA}" .
+          docker push "$ACR_LOGIN_SERVER/maize-drs-frontend:${GITHUB_SHA}"
+
+      - name: Build and push backend image
+        run: |
+          docker build -f maize-drs-backend/Dockerfile -t "$ACR_LOGIN_SERVER/maize-drs-backend:${GITHUB_SHA}" .
+          docker push "$ACR_LOGIN_SERVER/maize-drs-backend:${GITHUB_SHA}"
+
+      - name: Build and push inference image
+        run: |
+          docker build -f maize-api/Dockerfile -t "$ACR_LOGIN_SERVER/maize-drs-inference:${GITHUB_SHA}" .
+          docker push "$ACR_LOGIN_SERVER/maize-drs-inference:${GITHUB_SHA}"
+
+      - name: Setup .NET SDK for EF migrations
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Run EF Core migrations
+        run: |
+          pushd maize-drs-backend
+          dotnet tool restore
+          ConnectionStrings__Default="$SQL_CONNECTION_STRING" Database__Provider="SqlServer" dotnet tool run dotnet-ef database update --project maize-drs-backend.csproj --startup-project maize-drs-backend.csproj
+          popd
+
+      - name: Run one-time legacy Mongo import
+        if: env.RUN_LEGACY_IMPORT == 'true'
+        run: dotnet run --project maize-drs-backend.Migrator/maize-drs-backend.Migrator.csproj --configuration Release
+        env:
+          ConnectionStrings__Default: ${{ env.SQL_CONNECTION_STRING }}
+          Database__Provider: SqlServer
+          BlobStorage__Provider: AzureBlob
+          BlobStorage__ConnectionString: ${{ env.BLOB_CONNECTION_STRING }}
+          BlobStorage__ContainerName: assessment-images
+          LEGACY_MONGODB_CONNECTION_STRING: ${{ secrets.LEGACY_MONGODB_CONNECTION_STRING }}
+          LEGACY_MONGODB_DATABASE_NAME: ${{ env.LEGACY_MONGODB_DATABASE_NAME }}
+          LEGACY_MONGODB_USER_COLLECTION_NAME: ${{ env.LEGACY_MONGODB_USER_COLLECTION_NAME }}
+          LEGACY_MONGODB_ASSESSMENT_COLLECTION_NAME: ${{ env.LEGACY_MONGODB_ASSESSMENT_COLLECTION_NAME }}
+
+      - name: Deploy Container Apps
+        run: |
+          az deployment group create \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --template-file infra/azure/apps.bicep \
+            --parameters \
+              location="$AZURE_LOCATION" \
+              containerRegistryName="$AZURE_CONTAINER_REGISTRY_NAME" \
+              managedEnvironmentName="$AZURE_MANAGED_ENVIRONMENT_NAME" \
+              storageAccountName="$AZURE_STORAGE_ACCOUNT_NAME" \
+              sqlServerName="$AZURE_SQL_SERVER_NAME" \
+              sqlDatabaseName="$AZURE_SQL_DATABASE_NAME" \
+              sqlAdminLogin="${{ secrets.AZURE_SQL_ADMIN_LOGIN }}" \
+              sqlAdminPassword="${{ secrets.AZURE_SQL_ADMIN_PASSWORD }}" \
+              jwtKey="${{ secrets.AZURE_JWT_KEY }}" \
+              bootstrapAdminEmail="${{ secrets.AZURE_BOOTSTRAP_ADMIN_EMAIL }}" \
+              bootstrapAdminPassword="${{ secrets.AZURE_BOOTSTRAP_ADMIN_PASSWORD }}" \
+              jwtIssuer="$AZURE_PUBLIC_API_BASE_URL" \
+              jwtAudience="$AZURE_PUBLIC_APP_BASE_URL" \
+              publicAppBaseUrl="$AZURE_PUBLIC_APP_BASE_URL" \
+              publicApiBaseUrl="$AZURE_PUBLIC_API_BASE_URL" \
+              frontendAppName="$AZURE_FRONTEND_APP_NAME" \
+              backendAppName="$AZURE_BACKEND_APP_NAME" \
+              inferenceAppName="$AZURE_INFERENCE_APP_NAME" \
+              frontendImageTag="${GITHUB_SHA}" \
+              backendImageTag="${GITHUB_SHA}" \
+              inferenceImageTag="${GITHUB_SHA}" \
+            --query properties.outputs > app-outputs.json
+
+      - name: Setup Node.js for smoke test
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run public smoke test
+        run: node scripts/smoke-test.mjs
+        env:
+          APP_URL: ${{ vars.AZURE_PUBLIC_APP_BASE_URL }}
+          API_URL: ${{ vars.AZURE_PUBLIC_API_BASE_URL }}
+          SMOKE_TEST_EMAIL: ${{ secrets.SMOKE_TEST_EMAIL }}
+          SMOKE_TEST_PASSWORD: ${{ secrets.SMOKE_TEST_PASSWORD }}

@@ -1,0 +1,150 @@
+@import "tailwindcss";
+
+:root {
+  --app-navbar-height: 4rem;
+  --background: #f6f1e4;
+  --foreground: #123126;
+  --surface: rgba(255, 252, 244, 0.92);
+  --surface-strong: rgba(255, 255, 255, 0.96);
+  --surface-muted: rgba(250, 245, 234, 0.82);
+  --border: rgba(31, 92, 56, 0.16);
+  --muted: rgba(18, 49, 38, 0.72);
+  --table-header: rgba(224, 238, 212, 0.96);
+  --hover: rgba(31, 92, 56, 0.08);
+  --input-background: rgba(255, 255, 255, 0.92);
+  --input-border: rgba(31, 92, 56, 0.22);
+  --page-gradient-1: rgba(144, 184, 104, 0.24);
+  --page-gradient-2: rgba(227, 177, 79, 0.22);
+  --page-start: #f7f3e8;
+  --page-mid: #eef3e0;
+  --page-end: #f8f1dd;
+  --shadow-soft: rgba(23, 57, 34, 0.14);
+}
+
+html[data-theme='dark'] {
+  --background: #0f1714;
+  --foreground: #edf5f0;
+  --surface: rgba(20, 30, 25, 0.88);
+  --surface-strong: rgba(18, 29, 24, 0.96);
+  --surface-muted: rgba(28, 42, 34, 0.88);
+  --border: rgba(190, 227, 196, 0.16);
+  --muted: rgba(237, 245, 240, 0.72);
+  --table-header: rgba(28, 68, 45, 0.95);
+  --hover: rgba(190, 227, 196, 0.08);
+  --input-background: rgba(11, 19, 15, 0.95);
+  --input-border: rgba(190, 227, 196, 0.18);
+  --page-gradient-1: rgba(47, 115, 79, 0.22);
+  --page-gradient-2: rgba(164, 116, 42, 0.18);
+  --page-start: #101816;
+  --page-mid: #13201a;
+  --page-end: #0b120f;
+  --shadow-soft: rgba(0, 0, 0, 0.35);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html {
+  background: var(--background);
+  color-scheme: light;
+}
+
+html[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, var(--page-gradient-1), transparent 26%),
+    radial-gradient(circle at bottom right, var(--page-gradient-2), transparent 24%),
+    linear-gradient(180deg, var(--page-start) 0%, var(--page-mid) 52%, var(--page-end) 100%);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+input:not([type='checkbox']):not([type='radio']):not([type='file']),
+select,
+textarea {
+  background: var(--input-background);
+  border-color: var(--input-border);
+  color: var(--foreground);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--muted);
+}
+
+.auth-form input:not([type='checkbox']):not([type='radio']):not([type='file']) {
+  background: #ffffff;
+  border-color: #d4d4d4;
+  color: #171717;
+  caret-color: #171717;
+}
+
+.auth-form input:not([type='checkbox']):not([type='radio']):not([type='file'])::placeholder {
+  color: #737373;
+}
+
+.auth-form input:not([type='checkbox']):not([type='radio']):not([type='file']):focus {
+  border-color: #13800f;
+  box-shadow: 0 0 0 2px rgba(19, 128, 15, 0.15);
+}
+
+select option {
+  background: var(--surface-strong);
+  color: var(--foreground);
+}
+
+.glass-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(16px);
+}
+
+.hero-shadow {
+  box-shadow: 0 22px 60px var(--shadow-soft);
+}
+
+.app-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 22px 60px var(--shadow-soft);
+}
+
+.app-solid-panel {
+  background: var(--surface-strong);
+  border: 1px solid var(--border);
+  box-shadow: 0 22px 60px var(--shadow-soft);
+}
+
+.app-table {
+  border-color: var(--border);
+  background: var(--surface-strong);
+}
+
+.app-table th,
+.app-table td {
+  border-color: var(--border);
+}
+
+.app-table thead {
+  background: var(--table-header);
+}
