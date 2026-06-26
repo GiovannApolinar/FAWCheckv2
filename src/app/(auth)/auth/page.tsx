@@ -43,6 +43,7 @@ function AuthPageContent() {
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
+  const [displayLang, setDisplayLang] = useState<'en' | 'tl'>('en');
 
   const nextPath = useMemo(() => {
     const next = searchParams?.get('next');
@@ -188,6 +189,24 @@ function AuthPageContent() {
                       className="h-auto object-contain"
                     />
                   ))}
+                </div>
+
+                <div className="flex items-center gap-3 text-sm text-neutral-400">
+                  <button
+                    type="button"
+                    onClick={() => setDisplayLang('en')}
+                    className={`transition ${displayLang === 'en' ? 'font-semibold text-[#13800f]' : 'hover:text-neutral-600'}`}
+                  >
+                    English
+                  </button>
+                  <span aria-hidden="true">·</span>
+                  <button
+                    type="button"
+                    onClick={() => setDisplayLang('tl')}
+                    className={`transition ${displayLang === 'tl' ? 'font-semibold text-[#13800f]' : 'hover:text-neutral-600'}`}
+                  >
+                    Filipino
+                  </button>
                 </div>
               </div>
             </div>
