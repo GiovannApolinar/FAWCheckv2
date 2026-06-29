@@ -16,12 +16,13 @@ import {
 // import { savePendingAssessment } from '@/lib/offlineQueue';
 // import { buildProvisionalResponse } from '@/lib/ruleEngine';
 import {
-  ELONGATED_LESION_OPTIONS,
-  HOLE_OPTIONS,
-  PINHOLE_COUNT_OPTIONS,
-  SHOT_HOLE_OPTIONS,
-  WHORL_DAMAGE_OPTIONS,
+  getElongatedLesionOptions,
+  getHoleOptions,
+  getPinholeCountOptions,
+  getShotHoleOptions,
+  getWhorlDamageOptions,
 } from '@/lib/symptomContent';
+import { useLocale } from '@/hooks/useLocale';
 
 const DEFAULT_SYMPTOMS: SymptomInput = {
   leafFeedingDamage: false,
@@ -95,8 +96,15 @@ export default function AssessmentForm() {
   const [editContext, setEditContext] = useState<EditContext | null>(null);
   const [loadingEditRecord, setLoadingEditRecord] = useState(false);
   const [editLoadError, setEditLoadError] = useState('');
+  const { t } = useLocale();
   const { validation: photoValidation, isValidating: isPhotoValidationRunning } = usePhotoValidation(imageBase64);
   const hasNotMaizeWarning = photoValidation?.warnings.some((warning) => warning.kind === 'not_maize') ?? false;
+
+  const pinholeCountOptions = getPinholeCountOptions(t);
+  const shotHoleOptions = getShotHoleOptions(t);
+  const elongatedLesionOptions = getElongatedLesionOptions(t);
+  const holeOptions = getHoleOptions(t);
+  const whorlDamageOptions = getWhorlDamageOptions(t);
 
   useEffect(() => {
     setUseCameraCapture(supportsMobileCameraCapture());
@@ -104,9 +112,9 @@ export default function AssessmentForm() {
 
   useEffect(() => {
     if (hasNotMaizeWarning) {
-      toast.error('This photo may not show maize/corn. Please retake or upload a maize photo.');
+      toast.error(t('toast_not_maize'));
     }
-  }, [hasNotMaizeWarning, imageBase64]);
+  }, [hasNotMaizeWarning, imageBase64, t]);
 
   useEffect(() => {
     if (isEditing) {
@@ -206,23 +214,23 @@ export default function AssessmentForm() {
     event.preventDefault();
 
     if (isEditing && !editContext) {
-      toast.error('The saved record is still loading.');
+      toast.error(t('toast_record_loading'));
       return;
     }
 
     const numericDap = Number(dap);
     if (!Number.isFinite(numericDap) || numericDap < 0) {
-      toast.error('Enter a valid DAP value.');
+      toast.error(t('toast_invalid_dap'));
       return;
     }
 
     if (!imageBase64 || !imageName) {
-      toast.error(useCameraCapture ? 'Take a maize photo before submitting.' : 'Upload a maize image before submitting.');
+      toast.error(useCameraCapture ? t('toast_photo_required_camera') : t('toast_photo_required_upload'));
       return;
     }
 
     if (isPhotoValidationRunning) {
-      toast.error('Please wait while the photo is checked.');
+      toast.error(t('toast_photo_validating'));
       return;
     }
 
@@ -241,7 +249,7 @@ export default function AssessmentForm() {
 
       try {
         const updated = await updateAssessment(editContext.recordId, request);
-        toast.success('Record updated.');
+        toast.success(t('toast_record_updated'));
         router.push(`/result?recordId=${encodeURIComponent(updated.recordId)}`);
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Failed to update the saved record.';
@@ -257,11 +265,11 @@ export default function AssessmentForm() {
 
     try {
       const saved = await evaluateAndSaveAssessment(request);
-      toast.success('Assessment saved.');
+      toast.success(t('toast_assessment_saved'));
       router.push(`/result?recordId=${encodeURIComponent(saved.recordId)}`);
       return;
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Assessment submission failed.';
+      const message = error instanceof Error ? error.message : t('toast_assessment_failed');
       toast.error(message);
 
       // Offline local-result preparation is disabled until queued sync is fixed.
@@ -282,12 +290,12 @@ export default function AssessmentForm() {
     }
   };
 
-  const imageFieldLabel = useCameraCapture ? 'Take Maize Photo' : 'Upload Maize Image';
-  const imageButtonLabel = useCameraCapture ? 'Take Photo' : 'Upload Image';
-  const imageStatusLabel = imageName || (useCameraCapture ? 'No photo taken yet' : 'No image selected');
+  const imageFieldLabel = useCameraCapture ? t('assessment_photo_label_camera') : t('assessment_photo_label_upload');
+  const imageButtonLabel = useCameraCapture ? t('assessment_photo_btn_camera') : t('assessment_photo_btn_upload');
+  const imageStatusLabel = imageName || (useCameraCapture ? t('assessment_photo_none_camera') : t('assessment_photo_none_upload'));
   const imageReplacementHint = useCameraCapture
-    ? 'The current photo is already loaded. Take a new photo only if you want to replace it.'
-    : 'The current image is already loaded. Upload a new image only if you want to replace it.';
+    ? t('assessment_photo_replace_camera')
+    : t('assessment_photo_replace_upload');
 
   return (
     <main
@@ -297,12 +305,12 @@ export default function AssessmentForm() {
       <div className="relative z-10 flex min-h-[calc(100vh_-_var(--app-navbar-height))] items-center justify-center p-6">
         <div className="app-solid-panel w-full max-w-2xl rounded-[1.75rem] p-6 md:p-8">
           <h1 className="mb-4 text-center text-2xl font-bold text-green-700">
-            {isEditing ? 'Edit Saved Record' : 'Start New Assessment'}
+            {isEditing ? t('assessment_heading_edit') : t('assessment_heading_create')}
           </h1>
 
           {loadingEditRecord && (
             <p className="rounded-md bg-[color:var(--surface-muted)] p-3 text-center text-sm text-[color:var(--foreground)]">
-              Loading the saved record...
+              {t('assessment_loading_record')}
             </p>
           )}
 
@@ -314,7 +322,7 @@ export default function AssessmentForm() {
                 onClick={() => router.push('/saved')}
                 className="w-full rounded border border-[color:var(--border)] bg-[color:var(--surface-strong)] py-2 font-semibold text-[color:var(--foreground)] transition hover:bg-[color:var(--hover)]"
               >
-                Back to Saved Records
+                {t('assessment_back_to_saved')}
               </button>
             </div>
           )}
@@ -323,13 +331,13 @@ export default function AssessmentForm() {
             <form onSubmit={handleSubmit} className="space-y-5 text-[color:var(--foreground)]">
               {isEditing && (
                 <p className="rounded-md bg-amber-50 p-3 text-sm text-amber-800">
-                  Update the assessment details below. Saving will overwrite this existing record.
+                  {t('assessment_edit_warning')}
                 </p>
               )}
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <label className="mb-1 block text-sm font-medium">Days After Planting (DAP)</label>
+                  <label className="mb-1 block text-sm font-medium">{t('assessment_dap_label')}</label>
                   <input
                     type="number"
                     min={0}
@@ -341,7 +349,7 @@ export default function AssessmentForm() {
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-sm font-medium">Location (optional)</label>
+                  <label className="mb-1 block text-sm font-medium">{t('assessment_location_label')}</label>
                   <input
                     type="text"
                     value={locationText}
@@ -380,44 +388,42 @@ export default function AssessmentForm() {
                   isValidating={isPhotoValidationRunning}
                 />
                 <p className="mt-2 rounded-md bg-[color:var(--surface-muted)] p-3 text-sm text-[color:var(--foreground)]">
-                  Final scoring still follows the Prasanna foliar damage guide. The image is used only as supporting
-                  advice while the current model dataset is still limited.
+                  {t('assessment_photo_model_note')}
                 </p>
               </div>
 
               <div className="space-y-4 border-t border-[color:var(--border)] pt-4">
                 <div className="space-y-1">
-                  <h2 className="text-lg font-semibold text-green-700">What You Observed</h2>
+                  <h2 className="text-lg font-semibold text-green-700">{t('assessment_observed_heading')}</h2>
                   <p className="text-sm text-[color:var(--muted)]">
-                    Use your best estimate for each question. The wording is simplified, but the answers still map to
-                    the Prasanna foliar damage scale.
+                    {t('assessment_observed_desc')}
                   </p>
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-1">
                     <label className="mb-1 block text-sm font-medium">
-                      Do you see any signs of leaf feeding damage?
+                      {t('assessment_q_leaf_feeding_label')}
                     </label>
                     <p className="text-xs text-[color:var(--muted)]">
-                      Choose Yes if you notice chewing, pinholes, scars, or torn leaf tissue.
+                      {t('assessment_q_leaf_feeding_hint')}
                     </p>
                     <select
                       value={symptoms.leafFeedingDamage ? 'yes' : 'no'}
                       onChange={(event) => updateSymptom('leafFeedingDamage', event.target.value === 'yes')}
                       className="app-input w-full rounded-md border p-2"
                     >
-                      <option value="no">No</option>
-                      <option value="yes">Yes</option>
+                      <option value="no">{t('assessment_option_no')}</option>
+                      <option value="yes">{t('assessment_option_yes')}</option>
                     </select>
                   </div>
 
                   <div className="space-y-1">
                     <label className="mb-1 block text-sm font-medium">
-                      How many older leaves have tiny pinholes?
+                      {t('assessment_q_pinholes_label')}
                     </label>
                     <p className="text-xs text-[color:var(--muted)]">
-                      Count only the older outer leaves, not the newest leaves in the center.
+                      {t('assessment_q_pinholes_hint')}
                     </p>
                     <select
                       value={String(symptoms.olderLeavesWithPinholeCount)}
@@ -426,7 +432,7 @@ export default function AssessmentForm() {
                       }
                       className="app-input w-full rounded-md border p-2"
                     >
-                      {PINHOLE_COUNT_OPTIONS.map((option) => (
+                      {pinholeCountOptions.map((option) => (
                         <option key={option.value} value={option.value}>
                           {option.label}
                         </option>
@@ -437,11 +443,10 @@ export default function AssessmentForm() {
 
                 <div className="space-y-1">
                   <label className="mb-1 block text-sm font-medium">
-                    How many leaves are damaged by small feeding holes?
+                    {t('assessment_q_shot_hole_label')}
                   </label>
                   <p className="text-xs text-[color:var(--muted)]">
-                    Think of this as the number of leaves with shot-hole type damage. If the damaged leaves are still
-                    rolled in the center, choose one of the rolled-center-leaf options.
+                    {t('assessment_q_shot_hole_hint')}
                   </p>
                   <select
                     value={symptoms.shotHoleLeafBand}
@@ -450,7 +455,7 @@ export default function AssessmentForm() {
                     }
                     className="app-input w-full rounded-md border p-2"
                   >
-                    {SHOT_HOLE_OPTIONS.map((option) => (
+                    {shotHoleOptions.map((option) => (
                       <option key={option.value} value={option.value}>
                         {option.label}
                       </option>
@@ -461,10 +466,10 @@ export default function AssessmentForm() {
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-1">
                     <label className="mb-1 block text-sm font-medium">
-                      How many long feeding scars or streaks do you see?
+                      {t('assessment_q_elongated_label')}
                     </label>
                     <p className="text-xs text-[color:var(--muted)]">
-                      These are stretched feeding marks rather than round holes.
+                      {t('assessment_q_elongated_hint')}
                     </p>
                     <select
                       value={symptoms.elongatedLesionBand}
@@ -473,7 +478,7 @@ export default function AssessmentForm() {
                       }
                       className="app-input w-full rounded-md border p-2"
                     >
-                      {ELONGATED_LESION_OPTIONS.map((option) => (
+                      {elongatedLesionOptions.map((option) => (
                         <option key={option.value} value={option.value}>
                           {option.label}
                         </option>
@@ -483,17 +488,17 @@ export default function AssessmentForm() {
 
                   <div className="space-y-1">
                     <label className="mb-1 block text-sm font-medium">
-                      How much round or torn hole damage do you see?
+                      {t('assessment_q_holes_label')}
                     </label>
                     <p className="text-xs text-[color:var(--muted)]">
-                      Choose the option that best matches the overall amount of visible holes or tearing.
+                      {t('assessment_q_holes_hint')}
                     </p>
                     <select
                       value={symptoms.holeBand}
                       onChange={(event) => updateSymptom('holeBand', event.target.value as SymptomInput['holeBand'])}
                       className="app-input w-full rounded-md border p-2"
                     >
-                      {HOLE_OPTIONS.map((option) => (
+                      {holeOptions.map((option) => (
                         <option key={option.value} value={option.value}>
                           {option.label}
                         </option>
@@ -504,9 +509,9 @@ export default function AssessmentForm() {
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-1">
-                    <label className="mb-1 block text-sm font-medium">How badly damaged is the whorl?</label>
+                    <label className="mb-1 block text-sm font-medium">{t('assessment_q_whorl_label')}</label>
                     <p className="text-xs text-[color:var(--muted)]">
-                      This refers to the whorl, or the tightly rolled young leaves in the middle of the plant.
+                      {t('assessment_q_whorl_hint')}
                     </p>
                     <select
                       value={symptoms.whorlFurlDestruction}
@@ -515,7 +520,7 @@ export default function AssessmentForm() {
                       }
                       className="app-input w-full rounded-md border p-2"
                     >
-                      {WHORL_DAMAGE_OPTIONS.map((option) => (
+                      {whorlDamageOptions.map((option) => (
                         <option key={option.value} value={option.value}>
                           {option.label}
                         </option>
@@ -524,9 +529,9 @@ export default function AssessmentForm() {
                   </div>
 
                   <div className="space-y-1">
-                    <label className="mb-1 block text-sm font-medium">How many FAW larvae can you see?</label>
+                    <label className="mb-1 block text-sm font-medium">{t('assessment_q_larvae_label')}</label>
                     <p className="text-xs text-[color:var(--muted)]">
-                      Enter your best count of visible worms or larvae on the plant.
+                      {t('assessment_q_larvae_hint')}
                     </p>
                     <input
                       type="number"
@@ -544,7 +549,7 @@ export default function AssessmentForm() {
                     checked={symptoms.plantDying}
                     onChange={(event) => updateSymptom('plantDying', event.target.checked)}
                   />
-                  The plant is already dying because of severe leaf damage
+                  {t('assessment_plant_dying')}
                 </label>
               </div>
 
@@ -555,7 +560,7 @@ export default function AssessmentForm() {
                     onClick={() => router.push('/saved')}
                     className="w-full rounded border border-[color:var(--border)] bg-[color:var(--surface-strong)] py-2 font-semibold text-[color:var(--foreground)] transition hover:bg-[color:var(--hover)]"
                   >
-                    Cancel
+                    {t('assessment_btn_cancel')}
                   </button>
                 )}
 
@@ -568,11 +573,11 @@ export default function AssessmentForm() {
                 >
                   {isEditing
                     ? submitting
-                      ? 'Saving Changes...'
-                      : 'Save Changes'
+                      ? t('assessment_btn_saving_changes')
+                      : t('assessment_btn_save_changes')
                     : submitting
-                      ? 'Saving Assessment...'
-                      : 'Save Assessment'}
+                      ? t('assessment_btn_saving_assessment')
+                      : t('assessment_btn_save_assessment')}
                 </button>
               </div>
             </form>
