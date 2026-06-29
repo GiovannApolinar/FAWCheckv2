@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'react-hot-toast';
-import { partnerLogos } from '@/content/project';
+import { getPartnerLogos } from '@/content/project';
 import { hasValidStoredAuthToken, persistAuthToken } from '@/lib/auth';
 import { getApiBaseUrl, PendingAuthResponse } from '@/lib/api';
 import { useLocale } from '@/hooks/useLocale';
@@ -44,7 +44,7 @@ function AuthPageContent() {
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
-  const { locale, setLocale } = useLocale();
+  const { locale, setLocale, t } = useLocale();
 
   const nextPath = useMemo(() => {
     const next = searchParams?.get('next');
@@ -180,7 +180,7 @@ function AuthPageContent() {
                 </p>
 
                 <div className="flex flex-wrap items-end justify-center gap-7 sm:gap-10">
-                  {partnerLogos.map((logo) => (
+                  {getPartnerLogos(t).map((logo) => (
                     <Image
                       key={logo.src}
                       src={logo.src}
