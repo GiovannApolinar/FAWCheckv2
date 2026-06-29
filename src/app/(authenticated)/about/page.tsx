@@ -1,17 +1,31 @@
+'use client';
+
 import Image from 'next/image';
-import { aboutSections, partnerLogos, projectCapabilities, projectSummary } from '@/content/project';
+import { useLocale } from '@/hooks/useLocale';
+import {
+  getAboutSections,
+  getPartnerLogos,
+  getProjectCapabilities,
+  getProjectSummary,
+} from '@/content/project';
 
 export default function AboutPage() {
+  const { t } = useLocale();
+
+  const partnerLogos = getPartnerLogos(t);
+  const aboutSections = getAboutSections(t);
+  const projectCapabilities = getProjectCapabilities(t);
+
   return (
     <main className="px-4 py-6 sm:px-6">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
         <section className="app-panel rounded-[2rem] p-8 md:p-10">
-          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[#13800f]">About the project</p>
+          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[#13800f]">{t('about_label')}</p>
           <h1 className="mt-3 text-4xl font-bold tracking-tight text-[color:var(--foreground)] md:text-5xl">
-            FAWCheck
+            {t('about_heading')}
           </h1>
           <p className="mt-5 max-w-3xl text-base leading-7 text-[color:var(--muted)] md:text-lg">
-            {projectSummary}
+            {getProjectSummary(t)}
           </p>
         </section>
 
@@ -26,9 +40,9 @@ export default function AboutPage() {
           </div>
 
           <aside className="app-solid-panel rounded-[1.75rem] p-6">
-            <h2 className="text-xl font-semibold text-[color:var(--foreground)]">Project partners</h2>
+            <h2 className="text-xl font-semibold text-[color:var(--foreground)]">{t('about_partners_heading')}</h2>
             <p className="mt-3 leading-7 text-[color:var(--muted)]">
-              The current build highlights the collaborating institutions supporting the project and its field use.
+              {t('about_partners_desc')}
             </p>
 
             <div className="mt-6 space-y-4">
@@ -60,7 +74,7 @@ export default function AboutPage() {
         </section>
 
         <section className="app-panel rounded-[2rem] p-8">
-          <h2 className="text-2xl font-semibold text-[color:var(--foreground)]">Key capabilities in this build</h2>
+          <h2 className="text-2xl font-semibold text-[color:var(--foreground)]">{t('about_capabilities_heading')}</h2>
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             {projectCapabilities.map((capability) => (
               <div
