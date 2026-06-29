@@ -4,6 +4,7 @@ import Script from "next/script";
 import { Toaster } from 'react-hot-toast';
 import { PwaInstallProvider } from '@/hooks/usePwaInstall';
 import { THEME_COLORS, themeInitScript } from '@/lib/theme';
+import { localeInitScript } from '@/lib/locale';
 import "./globals.css";
 
 const geistSans = Geist({
@@ -61,6 +62,9 @@ export default function RootLayout({
       >
         <Script id="theme-init" strategy="beforeInteractive">
           {themeInitScript}
+        </Script>
+        <Script id="locale-init" strategy="beforeInteractive">
+          {localeInitScript}
         </Script>
         <PwaInstallProvider>
           {children}
