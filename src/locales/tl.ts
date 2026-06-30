@@ -324,6 +324,25 @@ const tl: Translations = {
   // Photo validation notice
   photo_validating: 'Sinusuri ang larawan para sa mga pangunahing isyu sa kalidad at nilalaman...',
   photo_warning_heading: 'Babala sa larawan',
+
+  // Photo validation warning strings
+  validation_unusable_title: 'Maaaring hindi magamit ang larawan',
+  validation_unusable_msg_prefix: 'Maaaring mahirap suriin ang larawang ito dahil ',
+  validation_unusable_msg_suffix: '. Muling kumuha ng larawang nakatuon ang dahon ng mais at maliwanag.',
+  validation_reason_too_small: 'masyadong maliit ang larawan',
+  validation_reason_blurry: 'mukhang malabo ito',
+  validation_reason_too_dark: 'masyadong madilim ito',
+  validation_reason_too_bright: 'masyadong maliwanag ito',
+  validation_reason_low_contrast: 'mahirap makita ang mga detalye ng dahon',
+  validation_conjunction_and: 'at',
+  validation_not_maize_title: 'Maaaring hindi nagpapakita ng mais ang larawan',
+  validation_not_maize_label_pre: 'Mukhang mas katulad ng ',
+  validation_not_maize_plant_post:
+    ' ang larawang ito kaysa mais. Muling kumuha ng larawang nakasentro ang mga dahon ng mais sa frame.',
+  validation_not_maize_nonplant_post:
+    ' ang larawang ito kaysa halaman ng mais. Muling kumuha ng larawang nakasentro ang mga dahon ng mais sa frame.',
+  validation_not_maize_no_vegetation:
+    'Hindi malinaw na mukhang halaman ng mais ang larawang ito. Muling kumuha ng larawang puno ng mga dahon ng mais ang frame.',
 };
 
 export default tl;

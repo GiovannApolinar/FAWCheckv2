@@ -316,6 +316,25 @@ const en: Translations = {
   // Photo validation notice
   photo_validating: 'Checking the photo for basic quality and content issues...',
   photo_warning_heading: 'Photo warning',
+
+  // Photo validation warning strings
+  validation_unusable_title: 'Photo may be unusable',
+  validation_unusable_msg_prefix: 'This photo may be hard to assess because ',
+  validation_unusable_msg_suffix: '. Retake it with the maize leaf in focus and well lit.',
+  validation_reason_too_small: 'the image is too small',
+  validation_reason_blurry: 'it looks blurry',
+  validation_reason_too_dark: 'it is too dark',
+  validation_reason_too_bright: 'it is too bright',
+  validation_reason_low_contrast: 'leaf details are hard to see',
+  validation_conjunction_and: 'and',
+  validation_not_maize_title: 'Photo may not show maize/corn',
+  validation_not_maize_label_pre: 'This image looks more like ',
+  validation_not_maize_plant_post:
+    ' than maize/corn. Retake it with the maize leaves centered in the frame.',
+  validation_not_maize_nonplant_post:
+    ' than a maize/corn plant. Retake it with the maize leaves centered in the frame.',
+  validation_not_maize_no_vegetation:
+    'This image does not clearly look like a maize/corn plant. Retake it with the maize leaves filling most of the frame.',
 };
 
 export default en;
