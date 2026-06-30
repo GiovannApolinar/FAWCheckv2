@@ -74,7 +74,6 @@ const en: Translations = {
   auth_toggle_to_login: 'Already have an account?',
   auth_toggle_signup_label: 'Sign Up',
   auth_toggle_login_label: 'Sign In',
-  toast_signup_sent: 'Your sign-up request has been sent for admin approval.',
   toast_login_success: 'Logged in successfully!',
   toast_auth_failed: 'Authentication failed.',
   toast_forgot_password:

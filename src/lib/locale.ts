@@ -65,7 +65,6 @@ export type Translations = {
   auth_submit_login: string;
   auth_submit_signup: string;
   auth_forgot_password: string;
-  auth_signup_pending_note: string;
   auth_toggle_to_signup: string;
   auth_toggle_to_login: string;
   auth_toggle_signup_label: string;

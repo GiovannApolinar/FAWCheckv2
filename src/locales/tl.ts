@@ -76,8 +76,6 @@ const tl: Translations = {
   auth_toggle_to_login: 'Mayroon nang account?',
   auth_toggle_signup_label: 'Mag-sign Up',
   auth_toggle_login_label: 'Mag-sign In',
-  toast_signup_sent:
-    'Ang iyong kahilingang mag-sign up ay naipadala na para sa pag-apruba ng admin.',
   toast_login_success: 'Matagumpay na naka-login!',
   toast_auth_failed: 'Nabigo ang pagpapatunay.',
   toast_forgot_password:
