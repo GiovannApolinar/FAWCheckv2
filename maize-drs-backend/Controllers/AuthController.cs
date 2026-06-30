@@ -55,7 +55,11 @@ namespace maize_drs_backend.Controllers
                 return BadRequest(string.Join(" ", createResult.Errors.Select(error => error.Description)));
             }
 
-            return Accepted(CreatePendingApprovalResponse(user.Email ?? email));
+            return Ok(new AuthenticationResponseDto
+            {
+                Email = user.Email ?? email,
+                Status = "success"
+            });
         }
 
         [AllowAnonymous]
