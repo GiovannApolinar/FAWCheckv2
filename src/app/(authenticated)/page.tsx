@@ -4,10 +4,12 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import PwaInstallPrompt from '@/components/PwaInstallPrompt';
 import { getActiveAuthRole, hasValidStoredAuthToken } from '@/lib/auth';
+import { useLocale } from '@/hooks/useLocale';
 // import { countQueuedAssessments, syncQueuedAssessments } from '@/lib/offlineQueue';
 
 export default function Home() {
   const router = useRouter();
+  const { t } = useLocale();
   // const [pendingCount, setPendingCount] = useState(0);
   // const [syncing, setSyncing] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
@@ -72,7 +74,7 @@ export default function Home() {
   if (checkingAuth) {
     return (
       <main className="flex min-h-[calc(100vh_-_var(--app-navbar-height))] items-center justify-center p-6 text-[color:var(--foreground)]">
-        Checking authentication...
+        {t('home_checking_auth')}
       </main>
     );
   }
@@ -85,12 +87,11 @@ export default function Home() {
       <div className="relative z-10 mx-auto grid min-h-[calc(100vh_-_var(--app-navbar-height)_-_1rem)] w-full max-w-6xl gap-6 p-6 lg:grid-cols-[1.25fr_0.75fr] lg:items-center">
         <section className="glass-panel hero-shadow rounded-[2rem] p-8 text-left md:p-10">
           <h1 className="max-w-3xl text-5xl font-bold leading-tight text-[color:var(--foreground)] md:text-6xl">
-            Welcome to FAWCheck.
+            {t('home_heading')}
           </h1>
 
           <p className="mt-5 max-w-2xl text-base leading-7 text-[color:var(--muted)] md:text-lg">
-            developed for Institute of Plant Breeding- Entomology Laboratory. Record observations on site and save them
-            securely to your FAWCheck account.
+            {t('home_description')}
           </p>
 
           <div className="mt-8 flex flex-wrap gap-3">
@@ -98,14 +99,14 @@ export default function Home() {
               onClick={() => router.replace('/assessment')}
               className="rounded-full bg-green-700 px-6 py-3 font-semibold text-white shadow-md transition hover:bg-green-800"
             >
-              Start New Assessment
+              {t('home_btn_new_assessment')}
             </button>
 
             <button
               onClick={() => router.push('/saved')}
               className="rounded-full bg-amber-500 px-6 py-3 font-semibold text-white shadow-md transition hover:bg-amber-600"
             >
-              View Saved Records
+              {t('home_btn_saved_records')}
             </button>
 
             {isAdmin && (
@@ -113,7 +114,7 @@ export default function Home() {
                 onClick={() => router.push('/admin')}
                 className="rounded-full bg-white px-6 py-3 font-semibold text-green-800 shadow-md transition hover:bg-green-50"
               >
-                Review Sign-Ups
+                {t('home_btn_review_signups')}
               </button>
             )}
           </div>
