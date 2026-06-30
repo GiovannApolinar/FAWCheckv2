@@ -279,6 +279,22 @@ export type Translations = {
   // Photo validation notice
   photo_validating: string;
   photo_warning_heading: string;
+
+  // Photo validation warning strings
+  validation_unusable_title: string;
+  validation_unusable_msg_prefix: string;
+  validation_unusable_msg_suffix: string;
+  validation_reason_too_small: string;
+  validation_reason_blurry: string;
+  validation_reason_too_dark: string;
+  validation_reason_too_bright: string;
+  validation_reason_low_contrast: string;
+  validation_conjunction_and: string;
+  validation_not_maize_title: string;
+  validation_not_maize_label_pre: string;
+  validation_not_maize_plant_post: string;
+  validation_not_maize_nonplant_post: string;
+  validation_not_maize_no_vegetation: string;
 };
 
 export type TranslationFn = (key: keyof Translations) => string;
