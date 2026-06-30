@@ -106,7 +106,6 @@ function AuthPageContent() {
       if (!isLogin) {
         setPassword('');
         setIsLogin(true);
-
         return;
       }
 
