@@ -10,6 +10,7 @@ import {
   exportAssessmentsCsv,
   listAssessments,
 } from '@/lib/api';
+import { useLocale } from '@/hooks/useLocale';
 // import { QueueItem, countQueuedAssessments, getQueuedAssessments, syncQueuedAssessments } from '@/lib/offlineQueue';
 
 const PAGE_SIZE = 10;
@@ -58,6 +59,7 @@ function isNetworkFailure(error: unknown): boolean {
 
 export default function SavedRecordsPage() {
   const router = useRouter();
+  const { t } = useLocale();
   const [records, setRecords] = useState<AssessmentListItem[]>([]);
   // const [offlineRecords, setOfflineRecords] = useState<OfflineRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -103,7 +105,7 @@ export default function SavedRecordsPage() {
       // setIsOfflineView(false);
     } catch (loadError) {
       if (isNetworkFailure(loadError)) {
-        setError('Saved records are available once you are back online.');
+        setError(t('saved_error_offline'));
         // setIsOfflineView(true);
       } else {
         setError(loadError instanceof Error ? loadError.message : 'Failed to load records.');
@@ -113,6 +115,7 @@ export default function SavedRecordsPage() {
     } finally {
       setLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [maxScore, minScore, page, search]);
 
   useEffect(() => {
@@ -159,27 +162,27 @@ export default function SavedRecordsPage() {
 
   const handleDelete = async (recordId: string) => {
     if (!navigator.onLine) {
-      toast.error('Delete is available once you are back online.');
+      toast.error(t('toast_delete_offline'));
       return;
     }
 
-    if (!confirm('Delete this record?')) {
+    if (!confirm(t('toast_delete_confirm'))) {
       return;
     }
 
     try {
       await deleteAssessment(recordId);
-      toast.success('Record deleted.');
+      toast.success(t('toast_record_deleted'));
       await loadRecords();
     } catch (deleteError) {
-      const message = deleteError instanceof Error ? deleteError.message : 'Delete failed.';
+      const message = deleteError instanceof Error ? deleteError.message : t('toast_delete_failed');
       toast.error(message);
     }
   };
 
   const handleExportCsv = async () => {
     if (!navigator.onLine) {
-      toast.error('CSV export is available once you are back online.');
+      toast.error(t('toast_export_offline'));
       return;
     }
 
@@ -199,7 +202,7 @@ export default function SavedRecordsPage() {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
     } catch (exportError) {
-      const message = exportError instanceof Error ? exportError.message : 'CSV export failed.';
+      const message = exportError instanceof Error ? exportError.message : t('toast_export_failed');
       toast.error(message);
     }
   };
@@ -234,7 +237,7 @@ export default function SavedRecordsPage() {
   if (checkingAuth) {
     return (
       <main className="flex min-h-[calc(100vh_-_var(--app-navbar-height))] items-center justify-center p-6 text-[color:var(--foreground)]">
-        Checking authentication...
+        {t('saved_checking_auth')}
       </main>
     );
   }
@@ -244,8 +247,8 @@ export default function SavedRecordsPage() {
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-5">
         <nav className="app-panel flex flex-wrap items-center justify-between gap-4 rounded-[1.75rem] px-4 py-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-green-700/70">Records</p>
-            <h1 className="text-2xl font-bold text-green-700">Saved Records</h1>
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-green-700/70">{t('saved_label')}</p>
+            <h1 className="text-2xl font-bold text-green-700">{t('saved_heading')}</h1>
           </div>
           {/* Offline sync controls disabled until queued sync is fixed. */}
         </nav>
@@ -257,7 +260,7 @@ export default function SavedRecordsPage() {
               setPage(1);
               setSearch(event.target.value);
             }}
-            placeholder="Search location/image/text"
+            placeholder={t('saved_search_placeholder')}
             className="app-input rounded-xl border p-2 text-sm"
           />
           <input
@@ -269,7 +272,7 @@ export default function SavedRecordsPage() {
               setPage(1);
               setMinScore(event.target.value);
             }}
-            placeholder="Min score"
+            placeholder={t('saved_min_score_placeholder')}
             className="app-input rounded-xl border p-2 text-sm"
           />
           <input
@@ -281,7 +284,7 @@ export default function SavedRecordsPage() {
               setPage(1);
               setMaxScore(event.target.value);
             }}
-            placeholder="Max score"
+            placeholder={t('saved_max_score_placeholder')}
             className="app-input rounded-xl border p-2 text-sm"
           />
           <button
@@ -291,11 +294,11 @@ export default function SavedRecordsPage() {
               isOnline ? 'bg-yellow-500 hover:bg-yellow-600' : 'cursor-not-allowed bg-gray-400'
             }`}
           >
-            Export CSV
+            {t('saved_export_csv')}
           </button>
         </div>
 
-        {loading && <p className="text-[color:var(--muted)]">Loading records...</p>}
+        {loading && <p className="text-[color:var(--muted)]">{t('saved_loading')}</p>}
         {!loading && error && <p className="rounded-2xl bg-red-50 p-3 text-sm text-red-700">{error}</p>}
         {/* Offline queued-record messages disabled until queued sync is fixed. */}
 
@@ -305,21 +308,21 @@ export default function SavedRecordsPage() {
               <table className="app-table min-w-full border text-sm">
                 <thead className="text-[color:var(--foreground)]">
                   <tr>
-                    <th className="border px-3 py-2 text-left">Date</th>
-                    <th className="border px-3 py-2 text-left">Score</th>
-                    <th className="border px-3 py-2 text-left">Band</th>
-                    <th className="border px-3 py-2 text-left">Confidence</th>
-                    <th className="border px-3 py-2 text-left">DAP</th>
-                    <th className="border px-3 py-2 text-left">Location</th>
-                    <th className="border px-3 py-2 text-left">Image</th>
-                    <th className="border px-3 py-2 text-left">Actions</th>
+                    <th className="border px-3 py-2 text-left">{t('saved_col_date')}</th>
+                    <th className="border px-3 py-2 text-left">{t('saved_col_score')}</th>
+                    <th className="border px-3 py-2 text-left">{t('saved_col_band')}</th>
+                    <th className="border px-3 py-2 text-left">{t('saved_col_confidence')}</th>
+                    <th className="border px-3 py-2 text-left">{t('saved_col_dap')}</th>
+                    <th className="border px-3 py-2 text-left">{t('saved_col_location')}</th>
+                    <th className="border px-3 py-2 text-left">{t('saved_col_image')}</th>
+                    <th className="border px-3 py-2 text-left">{t('saved_col_actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {!hasBackendRecords && (
                     <tr>
                       <td colSpan={8} className="border px-3 py-4 text-center text-[color:var(--muted)]">
-                        No records found.
+                        {t('saved_no_records')}
                       </td>
                     </tr>
                   )}
@@ -331,7 +334,7 @@ export default function SavedRecordsPage() {
                       <td className="border px-3 py-2">{record.responseBand}</td>
                       <td className="border px-3 py-2">{record.finalConfidencePercent}%</td>
                       <td className="border px-3 py-2">{record.dap}</td>
-                      <td className="border px-3 py-2">{record.locationText || 'N/A'}</td>
+                      <td className="border px-3 py-2">{record.locationText || t('saved_na')}</td>
                       <td className="border px-3 py-2">{record.imageName}</td>
                       <td className="border px-3 py-2">
                         <div className="flex flex-wrap gap-3">
@@ -339,7 +342,7 @@ export default function SavedRecordsPage() {
                             onClick={() => router.push(`/result?recordId=${encodeURIComponent(record.recordId)}`)}
                             className="text-green-700 hover:underline"
                           >
-                            View
+                            {t('saved_btn_view')}
                           </button>
                           <button
                             onClick={() =>
@@ -348,14 +351,14 @@ export default function SavedRecordsPage() {
                             disabled={!isOnline}
                             className={isOnline ? 'text-amber-700 hover:underline' : 'cursor-not-allowed text-gray-400'}
                           >
-                            Edit
+                            {t('saved_btn_edit')}
                           </button>
                           <button
                             onClick={() => handleDelete(record.recordId)}
                             disabled={!isOnline}
                             className={isOnline ? 'text-red-700 hover:underline' : 'cursor-not-allowed text-gray-400'}
                           >
-                            Delete
+                            {t('saved_btn_delete')}
                           </button>
                         </div>
                       </td>
@@ -377,10 +380,10 @@ export default function SavedRecordsPage() {
                 : 'border-[color:var(--border)] bg-[color:var(--surface-strong)] text-[color:var(--foreground)] hover:bg-[color:var(--hover)]'
             }`}
           >
-            Previous
+            {t('saved_pagination_previous')}
           </button>
           <p className="text-sm text-[color:var(--muted)]">
-            Page {page} of {totalPages}
+            {t('saved_pagination_page')} {page} {t('saved_pagination_of')} {totalPages}
           </p>
           <button
             onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
@@ -391,7 +394,7 @@ export default function SavedRecordsPage() {
                 : 'border-[color:var(--border)] bg-[color:var(--surface-strong)] text-[color:var(--foreground)] hover:bg-[color:var(--hover)]'
             }`}
           >
-            Next
+            {t('saved_pagination_next')}
           </button>
         </div>
       </div>
