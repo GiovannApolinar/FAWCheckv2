@@ -6,6 +6,7 @@ import tl from '@/locales/tl';
 import {
   type Locale,
   type TranslationFn,
+  LOCALE_CHANGE_EVENT,
   LOCALE_STORAGE_KEY,
   applyLocale,
   isLocale,
@@ -35,10 +36,20 @@ export function useLocale() {
       setLocaleState(nextLocale);
     };
 
+    const handleLocaleChange = (event: Event) => {
+      const nextLocale = (event as CustomEvent<string>).detail;
+      if (isLocale(nextLocale)) {
+        applyLocale(nextLocale);
+        setLocaleState(nextLocale);
+      }
+    };
+
     window.addEventListener('storage', handleStorage);
+    window.addEventListener(LOCALE_CHANGE_EVENT, handleLocaleChange);
 
     return () => {
       window.removeEventListener('storage', handleStorage);
+      window.removeEventListener(LOCALE_CHANGE_EVENT, handleLocaleChange);
     };
   }, []);
 

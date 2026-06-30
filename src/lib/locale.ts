@@ -310,9 +310,12 @@ export function applyLocale(locale: Locale): void {
   root.lang = locale;
 }
 
+export const LOCALE_CHANGE_EVENT = 'fawcheck-locale-change';
+
 export function persistLocale(locale: Locale): void {
   if (typeof window !== 'undefined') {
     window.localStorage.setItem(LOCALE_STORAGE_KEY, locale);
+    window.dispatchEvent(new CustomEvent(LOCALE_CHANGE_EVENT, { detail: locale }));
   }
 
   applyLocale(locale);
