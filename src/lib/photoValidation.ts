@@ -15,6 +15,40 @@ export interface PhotoValidationResult {
   warnings: PhotoValidationWarning[];
 }
 
+export type ValidationStrings = {
+  unusableTitle: string;
+  unusableMessagePrefix: string;
+  unusableMessageSuffix: string;
+  reasonTooSmall: string;
+  reasonBlurry: string;
+  reasonTooDark: string;
+  reasonTooBright: string;
+  reasonLowContrast: string;
+  conjunction: string;
+  notMaizeTitle: string;
+  notMaizeLabelPre: string;
+  notMaizePlantPost: string;
+  notMaizeNonPlantPost: string;
+  notMaizeNoVegetation: string;
+};
+
+const DEFAULT_STRINGS: ValidationStrings = {
+  unusableTitle: 'Photo may be unusable',
+  unusableMessagePrefix: 'This photo may be hard to assess because ',
+  unusableMessageSuffix: '. Retake it with the maize leaf in focus and well lit.',
+  reasonTooSmall: 'the image is too small',
+  reasonBlurry: 'it looks blurry',
+  reasonTooDark: 'it is too dark',
+  reasonTooBright: 'it is too bright',
+  reasonLowContrast: 'leaf details are hard to see',
+  conjunction: 'and',
+  notMaizeTitle: 'Photo may not show maize/corn',
+  notMaizeLabelPre: 'This image looks more like ',
+  notMaizePlantPost: ' than maize/corn. Retake it with the maize leaves centered in the frame.',
+  notMaizeNonPlantPost: ' than a maize/corn plant. Retake it with the maize leaves centered in the frame.',
+  notMaizeNoVegetation: 'This image does not clearly look like a maize/corn plant. Retake it with the maize leaves filling most of the frame.',
+};
+
 type QualityMetrics = {
   width: number;
   height: number;
@@ -139,7 +173,7 @@ function getSampleDimensions(width: number, height: number, maxSide = 192): { wi
   };
 }
 
-function formatReasons(reasons: string[]): string {
+function formatReasons(reasons: string[], conjunction: string): string {
   if (reasons.length === 0) {
     return '';
   }
@@ -149,10 +183,10 @@ function formatReasons(reasons: string[]): string {
   }
 
   if (reasons.length === 2) {
-    return `${reasons[0]} and ${reasons[1]}`;
+    return `${reasons[0]} ${conjunction} ${reasons[1]}`;
   }
 
-  return `${reasons.slice(0, -1).join(', ')}, and ${reasons[reasons.length - 1]}`;
+  return `${reasons.slice(0, -1).join(', ')}, ${conjunction} ${reasons[reasons.length - 1]}`;
 }
 
 function analyzeQuality(image: HTMLImageElement): QualityMetrics {
@@ -306,27 +340,27 @@ async function analyzeContent(image: HTMLImageElement): Promise<ContentSignal | 
   };
 }
 
-function buildUnusableWarning(metrics: QualityMetrics): PhotoValidationWarning | null {
+function buildUnusableWarning(metrics: QualityMetrics, strings: ValidationStrings): PhotoValidationWarning | null {
   const reasons: string[] = [];
 
   if (metrics.minDimension < 240) {
-    reasons.push('the image is too small');
+    reasons.push(strings.reasonTooSmall);
   }
 
   if (metrics.blurVariance < 10) {
-    reasons.push('it looks blurry');
+    reasons.push(strings.reasonBlurry);
   }
 
   if (metrics.averageBrightness < 45) {
-    reasons.push('it is too dark');
+    reasons.push(strings.reasonTooDark);
   }
 
   if (metrics.averageBrightness > 235) {
-    reasons.push('it is too bright');
+    reasons.push(strings.reasonTooBright);
   }
 
   if (metrics.contrast < 18) {
-    reasons.push('leaf details are hard to see');
+    reasons.push(strings.reasonLowContrast);
   }
 
   if (reasons.length === 0) {
@@ -335,20 +369,20 @@ function buildUnusableWarning(metrics: QualityMetrics): PhotoValidationWarning |
 
   return {
     kind: 'unusable',
-    title: 'Photo may be unusable',
-    message: `This photo may be hard to assess because ${formatReasons(reasons)}. Retake it with the maize leaf in focus and well lit.`,
+    title: strings.unusableTitle,
+    message: `${strings.unusableMessagePrefix}${formatReasons(reasons, strings.conjunction)}${strings.unusableMessageSuffix}`,
   };
 }
 
-function buildNotMaizeWarning(metrics: QualityMetrics, contentSignal: ContentSignal | null): PhotoValidationWarning | null {
+function buildNotMaizeWarning(metrics: QualityMetrics, contentSignal: ContentSignal | null, strings: ValidationStrings): PhotoValidationWarning | null {
   if (contentSignal?.shouldWarn) {
     const contentMessage = contentSignal.hasPlantSignal
-      ? `This image looks more like "${contentSignal.label}" than maize/corn. Retake it with the maize leaves centered in the frame.`
-      : `This image looks more like "${contentSignal.label}" than a maize/corn plant. Retake it with the maize leaves centered in the frame.`;
+      ? `${strings.notMaizeLabelPre}"${contentSignal.label}"${strings.notMaizePlantPost}`
+      : `${strings.notMaizeLabelPre}"${contentSignal.label}"${strings.notMaizeNonPlantPost}`;
 
     return {
       kind: 'not_maize',
-      title: 'Photo may not show maize/corn',
+      title: strings.notMaizeTitle,
       message: contentMessage,
     };
   }
@@ -360,26 +394,26 @@ function buildNotMaizeWarning(metrics: QualityMetrics, contentSignal: ContentSig
   if (metrics.vegetationRatio < 0.03 && metrics.averageBrightness > 55 && metrics.contrast > 20) {
     return {
       kind: 'not_maize',
-      title: 'Photo may not show maize/corn',
-      message: 'This image does not clearly look like a maize/corn plant. Retake it with the maize leaves filling most of the frame.',
+      title: strings.notMaizeTitle,
+      message: strings.notMaizeNoVegetation,
     };
   }
 
   return null;
 }
 
-export async function validatePhoto(source: string): Promise<PhotoValidationResult> {
+export async function validatePhoto(source: string, strings: ValidationStrings = DEFAULT_STRINGS): Promise<PhotoValidationResult> {
   const image = await loadImage(source);
   const metrics = analyzeQuality(image);
   const warnings: PhotoValidationWarning[] = [];
 
-  const unusableWarning = buildUnusableWarning(metrics);
+  const unusableWarning = buildUnusableWarning(metrics, strings);
   if (unusableWarning) {
     warnings.push(unusableWarning);
   }
 
   const contentSignal = await analyzeContent(image);
-  const notMaizeWarning = buildNotMaizeWarning(metrics, contentSignal);
+  const notMaizeWarning = buildNotMaizeWarning(metrics, contentSignal, strings);
   if (notMaizeWarning) {
     warnings.push(notMaizeWarning);
   }
