@@ -45,7 +45,8 @@ namespace maize_drs_backend.Controllers
                 Email = email,
                 EmailConfirmed = true,
                 RegisteredAtUtc = DateTime.UtcNow,
-                IsApproved = false
+                IsApproved = true, // removed admin approval requirement for testing purposes
+                ApprovedAtUtc = DateTime.UtcNow,
             };
 
             var createResult = await _userManager.CreateAsync(user, dto.Password);
