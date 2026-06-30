@@ -106,7 +106,7 @@ function AuthPageContent() {
       if (!isLogin) {
         setPassword('');
         setIsLogin(true);
-        toast.success(pendingPayload?.message || 'Your sign-up request has been sent for admin approval.');
+        toast.success(pendingPayload?.message || t('toast_signup_sent'));
         return;
       }
 
@@ -119,7 +119,7 @@ function AuthPageContent() {
       // Offline queued sync after login is disabled until queued sync is fixed.
       // await syncQueuedAssessments().catch(() => undefined);
 
-      toast.success('Logged in successfully!');
+      toast.success(t('toast_login_success'));
       router.replace(nextPath);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Something went wrong';
@@ -135,21 +135,19 @@ function AuthPageContent() {
   };
 
   const handleForgotPassword = () => {
-    toast('Password reset is not available yet. Please contact the project administrator.');
+    toast(t('toast_forgot_password'));
   };
 
-  const heading = isLogin ? 'Log into FAWCheck' : 'Sign up for FAWCheck';
-  const helperText = isLogin
-    ? 'Use your approved account credentials to continue.'
-    : 'Submit your account request here. Access is enabled after an administrator approves it.';
-  const submitLabel = submitting ? 'Submitting...' : isLogin ? 'Sign In' : 'Request Access';
-  const toggleLabel = isLogin ? 'Sign Up' : 'Sign In';
-  const togglePrompt = isLogin ? "Don't have an account?" : 'Already have an account?';
+  const heading = isLogin ? t('auth_login_heading') : t('auth_signup_heading');
+  const helperText = isLogin ? t('auth_login_helper') : t('auth_signup_helper');
+  const submitLabel = submitting ? t('auth_submit_submitting') : isLogin ? t('auth_submit_login') : t('auth_submit_signup');
+  const toggleLabel = isLogin ? t('auth_toggle_signup_label') : t('auth_toggle_login_label');
+  const togglePrompt = isLogin ? t('auth_toggle_to_signup') : t('auth_toggle_to_login');
 
   if (checkingSession) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-white p-6 text-green-800">
-        Checking your session...
+        {t('auth_checking_session')}
       </main>
     );
   }
@@ -170,13 +168,13 @@ function AuthPageContent() {
                 />
 
                 <p className="max-w-[32rem] text-[1.9rem] font-bold leading-[1.08] text-[#13800f] sm:text-[2.25rem]">
-                  A Digital Tool for Faster and More Reliable Maize Damage Rating
+                  {t('auth_marketing_tagline')}
                 </p>
               </div>
 
               <div className="mt-10 flex flex-col items-center gap-8">
                 <p className="max-w-[40rem] text-base leading-[1.3] text-[#5f5f5f] sm:text-[1.1rem]">
-                  This project is in collaboration with the Institute of Plant Breeding - Entomology Laboratory.
+                  {t('auth_partner_message')}
                 </p>
 
                 <div className="flex flex-wrap items-end justify-center gap-7 sm:gap-10">
@@ -225,12 +223,12 @@ function AuthPageContent() {
                   <form onSubmit={handleSubmit} className="auth-form space-y-4">
                     <div className="space-y-2">
                       <label htmlFor="email" className="block text-sm font-medium text-neutral-700">
-                        Email
+                        {t('auth_email_label')}
                       </label>
                       <input
                         id="email"
                         type="email"
-                        placeholder="Enter your email"
+                        placeholder={t('auth_email_placeholder')}
                         autoComplete="email"
                         className="w-full rounded-md border border-neutral-300 px-4 py-3 text-neutral-900 outline-none transition focus:border-[#13800f] focus:ring-2 focus:ring-[#13800f]/15"
                         value={email}
@@ -241,12 +239,12 @@ function AuthPageContent() {
 
                     <div className="space-y-2">
                       <label htmlFor="password" className="block text-sm font-medium text-neutral-700">
-                        Password
+                        {t('auth_password_label')}
                       </label>
                       <input
                         id="password"
                         type="password"
-                        placeholder={isLogin ? 'Enter your password' : 'Create a password'}
+                        placeholder={isLogin ? t('auth_password_placeholder_login') : t('auth_password_placeholder_signup')}
                         autoComplete={isLogin ? 'current-password' : 'new-password'}
                         className="w-full rounded-md border border-neutral-300 px-4 py-3 text-neutral-900 outline-none transition focus:border-[#13800f] focus:ring-2 focus:ring-[#13800f]/15"
                         value={password}
@@ -271,11 +269,11 @@ function AuthPageContent() {
                         onClick={handleForgotPassword}
                         className="text-sm text-neutral-600 underline decoration-neutral-400 underline-offset-4 transition hover:text-[#13800f]"
                       >
-                        Forgot password?
+                        {t('auth_forgot_password')}
                       </button>
                     ) : (
                       <p className="text-xs leading-5 text-neutral-500">
-                        Account requests remain pending until an administrator approves access.
+                        {t('auth_signup_pending_note')}
                       </p>
                     )}
                   </form>
