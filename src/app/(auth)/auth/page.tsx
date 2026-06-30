@@ -106,7 +106,7 @@ function AuthPageContent() {
       if (!isLogin) {
         setPassword('');
         setIsLogin(true);
-        toast.success(pendingPayload?.message || t('toast_signup_sent'));
+
         return;
       }
 
