@@ -5,9 +5,11 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { clearAuthToken, hasValidStoredAuthToken } from '@/lib/auth';
 import { deleteProfileAccount, getProfile, ProfileSummary, updateProfile } from '@/lib/api';
+import { useLocale } from '@/hooks/useLocale';
 
 export default function ProfilePage() {
   const router = useRouter();
+  const { t } = useLocale();
   const [checkingAccess, setCheckingAccess] = useState(true);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [profile, setProfile] = useState<ProfileSummary | null>(null);
@@ -81,14 +83,14 @@ export default function ProfilePage() {
     event.preventDefault();
 
     if (!navigator.onLine) {
-      toast.error('Profile updates are available once you are back online.');
+      toast.error(t('toast_profile_offline'));
       return;
     }
 
     const normalizedName = name.trim();
 
     if (!normalizedName) {
-      toast.error('Enter your name before saving.');
+      toast.error(t('toast_profile_enter_name'));
       return;
     }
 
@@ -102,9 +104,9 @@ export default function ProfilePage() {
       setProfile(updatedProfile);
       setName(updatedProfile.name);
       setSection(updatedProfile.section);
-      toast.success('Profile updated.');
+      toast.success(t('toast_profile_updated'));
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to update your profile.';
+      const message = error instanceof Error ? error.message : t('toast_profile_update_failed');
       toast.error(message);
     } finally {
       setSavingProfile(false);
@@ -113,18 +115,16 @@ export default function ProfilePage() {
 
   const handleDeleteAccount = async () => {
     if (!navigator.onLine) {
-      toast.error('Account deletion is available once you are back online.');
+      toast.error(t('toast_account_delete_offline'));
       return;
     }
 
     if (!profile?.canDeleteAccount) {
-      toast.error('Admin accounts cannot be deleted.');
+      toast.error(t('toast_admin_no_delete'));
       return;
     }
 
-    const confirmed = window.confirm(
-      'Delete your account permanently? This will remove your saved assessments and cannot be undone.',
-    );
+    const confirmed = window.confirm(t('toast_delete_account_confirm'));
 
     if (!confirmed) {
       return;
@@ -135,11 +135,11 @@ export default function ProfilePage() {
     try {
       await deleteProfileAccount();
       await clearAuthToken();
-      toast.success('Your account has been deleted.');
+      toast.success(t('toast_account_deleted'));
       router.replace('/auth');
       router.refresh();
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to delete your account.';
+      const message = error instanceof Error ? error.message : t('toast_account_delete_failed');
       toast.error(message);
       setDeletingAccount(false);
     }
@@ -148,7 +148,7 @@ export default function ProfilePage() {
   if (checkingAccess) {
     return (
       <main className="flex min-h-[calc(100vh_-_var(--app-navbar-height))] items-center justify-center p-6 text-[color:var(--foreground)]">
-        Checking profile access...
+        {t('profile_checking_access')}
       </main>
     );
   }
@@ -157,25 +157,23 @@ export default function ProfilePage() {
     <main className="px-4 py-6 sm:px-6">
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
         <section className="app-panel rounded-[2rem] p-8 md:p-10">
-          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[#13800f]">Profile</p>
+          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[#13800f]">{t('profile_label')}</p>
           <h1 className="mt-3 text-4xl font-bold tracking-tight text-[color:var(--foreground)] md:text-5xl">
-            Manage your account
+            {t('profile_heading')}
           </h1>
           <p className="mt-5 max-w-3xl leading-7 text-[color:var(--muted)]">
-            Update the name and section shown for your account and review whether this account can be deleted.
+            {t('profile_description')}
           </p>
         </section>
 
         {loadingProfile ? (
           <section className="app-solid-panel rounded-[1.75rem] p-6 md:p-8">
-            <p className="text-sm text-[color:var(--muted)]">Loading your profile...</p>
+            <p className="text-sm text-[color:var(--muted)]">{t('profile_loading')}</p>
           </section>
         ) : !profile ? (
           <section className="app-solid-panel rounded-[1.75rem] p-6 md:p-8">
             <p className="text-sm text-[color:var(--muted)]">
-              {isOnline
-                ? 'Your profile could not be loaded right now.'
-                : 'Profile management is available once you are back online.'}
+              {isOnline ? t('profile_error_online') : t('profile_error_offline')}
             </p>
           </section>
         ) : (
@@ -183,12 +181,12 @@ export default function ProfilePage() {
             <section className="app-solid-panel rounded-[1.75rem] p-6 md:p-8">
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="rounded-2xl border border-[color:var(--border)] bg-[color:var(--surface-muted)] p-5">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[color:var(--muted)]">Email</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[color:var(--muted)]">{t('profile_email_label')}</p>
                   <p className="mt-3 text-lg font-semibold text-[color:var(--foreground)]">{profile.email}</p>
                 </div>
 
                 <div className="rounded-2xl border border-[color:var(--border)] bg-[color:var(--surface-muted)] p-5">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[color:var(--muted)]">Role</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[color:var(--muted)]">{t('profile_role_label')}</p>
                   <p className="mt-3 text-lg font-semibold text-[color:var(--foreground)]">{profile.role}</p>
                 </div>
               </div>
@@ -196,16 +194,16 @@ export default function ProfilePage() {
 
             <section className="app-solid-panel rounded-[1.75rem] p-6 md:p-8">
               <div className="max-w-4xl">
-                <h2 className="text-2xl font-semibold text-[color:var(--foreground)]">Profile details</h2>
+                <h2 className="text-2xl font-semibold text-[color:var(--foreground)]">{t('profile_details_heading')}</h2>
                 <p className="mt-3 leading-7 text-[color:var(--muted)]">
-                  Keep your account name and section up to date so it is easier to identify who is using the app.
+                  {t('profile_details_desc')}
                 </p>
 
                 <form onSubmit={handleSaveProfile} className="mt-6 space-y-4">
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
                       <label htmlFor="profile-name" className="block text-sm font-medium text-[color:var(--foreground)]">
-                        Display name
+                        {t('profile_name_label')}
                       </label>
                       <input
                         id="profile-name"
@@ -213,14 +211,14 @@ export default function ProfilePage() {
                         maxLength={120}
                         value={name}
                         onChange={(event) => setName(event.target.value)}
-                        placeholder="Enter your name"
+                        placeholder={t('profile_name_placeholder')}
                         className="w-full rounded-2xl border border-[color:var(--border)] bg-[color:var(--surface-muted)] px-4 py-3 text-[color:var(--foreground)] outline-none transition focus:border-[#13800f] focus:ring-2 focus:ring-[#13800f]/15"
                       />
                     </div>
 
                     <div className="space-y-2">
                       <label htmlFor="profile-section" className="block text-sm font-medium text-[color:var(--foreground)]">
-                        Section
+                        {t('profile_section_label')}
                       </label>
                       <input
                         id="profile-section"
@@ -228,7 +226,7 @@ export default function ProfilePage() {
                         maxLength={120}
                         value={section}
                         onChange={(event) => setSection(event.target.value)}
-                        placeholder="Enter your section"
+                        placeholder={t('profile_section_placeholder')}
                         className="w-full rounded-2xl border border-[color:var(--border)] bg-[color:var(--surface-muted)] px-4 py-3 text-[color:var(--foreground)] outline-none transition focus:border-[#13800f] focus:ring-2 focus:ring-[#13800f]/15"
                       />
                     </div>
@@ -241,7 +239,7 @@ export default function ProfilePage() {
                       savingProfile || !isOnline ? 'cursor-not-allowed bg-neutral-400' : 'bg-[#13800f] hover:bg-[#0f670c]'
                     }`}
                   >
-                    {savingProfile ? 'Saving...' : 'Save profile'}
+                    {savingProfile ? t('profile_btn_saving') : t('profile_btn_save')}
                   </button>
                 </form>
               </div>
@@ -250,13 +248,13 @@ export default function ProfilePage() {
             <section className="app-solid-panel rounded-[1.75rem] border border-[#b42318]/15 p-6 md:p-8">
               <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
                 <div className="max-w-2xl">
-                  <h2 className="text-2xl font-semibold text-[color:var(--foreground)]">Delete account</h2>
+                  <h2 className="text-2xl font-semibold text-[color:var(--foreground)]">{t('profile_delete_heading')}</h2>
                   <p className="mt-3 leading-7 text-[color:var(--muted)]">
-                    Deleting your account permanently removes your access and your saved assessment records.
+                    {t('profile_delete_desc')}
                   </p>
                   {!profile.canDeleteAccount && (
                     <p className="mt-3 text-sm font-medium text-[#b42318]">
-                      This account is protected because it has administrator access.
+                      {t('profile_delete_admin_warning')}
                     </p>
                   )}
                 </div>
@@ -271,7 +269,7 @@ export default function ProfilePage() {
                       : 'bg-[#b42318] hover:bg-[#912018]'
                   }`}
                 >
-                  {deletingAccount ? 'Deleting...' : 'Delete account'}
+                  {deletingAccount ? t('profile_btn_deleting') : t('profile_btn_delete')}
                 </button>
               </div>
             </section>
