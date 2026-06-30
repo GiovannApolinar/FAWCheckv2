@@ -271,8 +271,7 @@ function AuthPageContent() {
                       >
                         {t('auth_forgot_password')}
                       </button>
-                    )
-                    )}
+                    ) : null}
                   </form>
                 </div>
 
