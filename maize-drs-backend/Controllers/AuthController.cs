@@ -11,8 +11,8 @@ namespace maize_drs_backend.Controllers
     [Route("api/auth")]
     public class AuthController : ControllerBase
     {
-        private const string PendingApprovalStatus = "pending_approval";
-        private const string PendingApprovalMessage = "Your account is awaiting admin approval.";
+        // private const string PendingApprovalStatus = "pending_approval";
+        // private const string PendingApprovalMessage = "Your account is awaiting admin approval.";
 
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly JwtService _jwtService;
