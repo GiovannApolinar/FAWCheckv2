@@ -5,21 +5,23 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { usePwaInstall } from '@/hooks/usePwaInstall';
 import { clearAuthToken, getActiveAuthRole } from '@/lib/auth';
+import type { Translations } from '@/lib/locale';
+import { useLocale } from '@/hooks/useLocale';
 
 type NavItem = {
   href: string;
-  label: string;
+  labelKey: keyof Translations;
   adminOnly?: boolean;
 };
 
 const navItems: readonly NavItem[] = [
-  { href: '/', label: 'Home' },
-  { href: '/assessment', label: 'Assessment' },
-  { href: '/saved', label: 'Records' },
-  { href: '/admin', label: 'Validate', adminOnly: true },
-  { href: '/profile', label: 'Profile' },
-  { href: '/about', label: 'About' },
-  { href: '/settings', label: 'Settings' },
+  { href: '/', labelKey: 'nav_home' },
+  { href: '/assessment', labelKey: 'nav_assessment' },
+  { href: '/saved', labelKey: 'nav_records' },
+  { href: '/admin', labelKey: 'nav_validate', adminOnly: true },
+  { href: '/profile', labelKey: 'nav_profile' },
+  { href: '/about', labelKey: 'nav_about' },
+  { href: '/settings', labelKey: 'nav_settings' },
 ] as const;
 
 function getNavLinkClasses(isActive: boolean): string {
@@ -34,6 +36,7 @@ function getNavLinkClasses(isActive: boolean): string {
 export default function AppNavbar() {
   const pathname = usePathname();
   const router = useRouter();
+  const { t } = useLocale();
   const [role, setRole] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showInstallHint, setShowInstallHint] = useState(false);
@@ -66,7 +69,9 @@ export default function AppNavbar() {
 
   const showMobileInstallButton = status === 'prompt' || status === 'ios' || status === 'android';
   const installButtonLabel =
-    status === 'prompt' ? (isInstalling ? 'Installing...' : 'Install') : platform === 'ios' ? 'How to add' : 'How to install';
+    status === 'prompt'
+      ? isInstalling ? t('nav_installing') : t('nav_install')
+      : platform === 'ios' ? t('nav_how_to_add') : t('nav_how_to_install');
 
   const handleMobileInstall = async () => {
     if (status === 'prompt' && canPrompt) {
@@ -91,7 +96,7 @@ export default function AppNavbar() {
 
             return (
               <Link key={item.href} href={item.href} className={getNavLinkClasses(isActive)}>
-                {item.label}
+                {t(item.labelKey)}
               </Link>
             );
           })}
@@ -99,7 +104,7 @@ export default function AppNavbar() {
 
         <div className="hidden shrink-0 justify-end md:flex">
           <button type="button" onClick={handleLogout} className={getNavLinkClasses(false)}>
-            Logout
+            {t('nav_logout')}
           </button>
         </div>
 
@@ -142,12 +147,11 @@ export default function AppNavbar() {
             <p className="rounded-2xl bg-[color:var(--surface)] px-4 py-3 text-sm leading-6 text-[color:var(--foreground)]">
               {status === 'ios' ? (
                 <>
-                  Use the browser share menu, then choose <span className="font-semibold">Add to Home Screen</span>.
+                  {t('nav_ios_hint_pre')}<span className="font-semibold">{t('nav_ios_hint_action')}</span>.
                 </>
               ) : (
                 <>
-                  Open the browser menu and choose <span className="font-semibold">Install app</span>. If that option
-                  is missing, use <span className="font-semibold">Add to Home screen</span>.
+                  {t('nav_android_hint_pre')}<span className="font-semibold">{t('nav_android_hint_action1')}</span>{t('nav_android_hint_mid')}<span className="font-semibold">{t('nav_android_hint_action2')}</span>.
                 </>
               )}
             </p>
@@ -171,7 +175,7 @@ export default function AppNavbar() {
                       : 'text-[color:var(--foreground)] hover:bg-[color:var(--hover)]'
                   }`}
                 >
-                  {item.label}
+                  {t(item.labelKey)}
                 </Link>
               );
             })}
@@ -181,7 +185,7 @@ export default function AppNavbar() {
               onClick={handleLogout}
               className="mt-2 rounded-2xl border border-[color:var(--border)] px-4 py-3 text-left text-sm font-medium text-[#13800f] transition hover:bg-[color:var(--hover)]"
             >
-              Logout
+              {t('nav_logout')}
             </button>
           </div>
         </div>
