@@ -9,6 +9,7 @@ import {
   fetchAuthorizedBlob,
   getAssessmentById,
 } from '@/lib/api';
+import { useLocale } from '@/hooks/useLocale';
 // import {
 //   enqueueAssessment,
 //   getPendingAssessmentById,
@@ -63,6 +64,7 @@ function ResultPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const recordId = searchParams?.get('recordId') ?? null;
+  const { t } = useLocale();
   // const pendingId = searchParams?.get('pendingId') ?? null;
   // const provisionalId = searchParams?.get('provisionalId') ?? null;
 
@@ -178,17 +180,16 @@ function ResultPageContent() {
   return (
     <div className="flex min-h-[calc(100vh_-_var(--app-navbar-height))] items-center justify-center p-4">
       <div className="app-solid-panel w-full max-w-2xl rounded-[1.75rem] p-6">
-        <h1 className="mb-4 text-center text-2xl font-bold text-green-800">Assessment Result</h1>
+        <h1 className="mb-4 text-center text-2xl font-bold text-green-800">{t('result_heading')}</h1>
 
-        {loading && <p className="text-center text-[color:var(--muted)]">Loading assessment result...</p>}
+        {loading && <p className="text-center text-[color:var(--muted)]">{t('result_loading')}</p>}
 
         {!loading && error && <p className="rounded bg-red-50 p-3 text-sm text-red-700">{error}</p>}
 
         {!loading && !error && result && (
           <div className="space-y-4 text-sm text-[color:var(--foreground)]">
             <p className="rounded bg-[color:var(--surface-muted)] p-3 text-[color:var(--foreground)]">
-              The foliar score follows the field scoring guide. The image model is shown as supporting information
-              only.
+              {t('result_model_note')}
             </p>
             <PhotoValidationNotice
               validation={photoValidation}
@@ -197,25 +198,25 @@ function ResultPageContent() {
 
             <div className="grid gap-3 md:grid-cols-2">
               <p>
-                <span className="font-semibold">Final score:</span> {result.finalScore}
+                <span className="font-semibold">{t('result_final_score')}</span> {result.finalScore}
               </p>
               <p>
-                <span className="font-semibold">Rule score:</span> {result.ruleScore}
+                <span className="font-semibold">{t('result_rule_score')}</span> {result.ruleScore}
               </p>
               <p>
-                <span className="font-semibold">Response band:</span> {result.responseBand}
+                <span className="font-semibold">{t('result_response_band')}</span> {result.responseBand}
               </p>
               <p>
-                <span className="font-semibold">Confidence:</span> {result.finalConfidencePercent}%
+                <span className="font-semibold">{t('result_confidence')}</span> {result.finalConfidencePercent}%
               </p>
               <p>
-                <span className="font-semibold">DAP:</span> {result.dap}
+                <span className="font-semibold">{t('result_dap')}</span> {result.dap}
               </p>
             </div>
 
             {previewSrc && (
               <div>
-                <p className="mb-2 font-semibold">Captured image</p>
+                <p className="mb-2 font-semibold">{t('result_captured_image')}</p>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={previewSrc}
@@ -229,14 +230,14 @@ function ResultPageContent() {
                 onClick={() => router.push('/saved')}
                 className="w-full rounded bg-green-600 py-2 font-semibold text-white transition hover:bg-green-700"
               >
-                View Saved Records
+                {t('result_btn_saved_records')}
               </button>
 
               <button
                 onClick={() => router.push('/assessment')}
                 className="w-full rounded border border-[color:var(--border)] bg-[color:var(--surface-strong)] py-2 font-semibold text-[color:var(--foreground)] transition hover:bg-[color:var(--hover)]"
               >
-                Make New Assessment
+                {t('result_btn_new_assessment')}
               </button>
             </div>
           </div>
