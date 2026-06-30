@@ -412,17 +412,6 @@ export async function exportAssessmentsCsv(params: {
   return response.blob();
 }
 
-export async function listPendingUsers(): Promise<PendingUserSummary[]> {
-  return requestJson<PendingUserSummary[]>('/api/admin/users/pending', {
-    method: 'GET',
-  });
-}
-
-export async function approvePendingUser(userId: string): Promise<ApprovedUserSummary> {
-  return requestJson<ApprovedUserSummary>(`/api/admin/users/${encodeURIComponent(userId)}/approve`, {
-    method: 'POST',
-  });
-}
 
 export async function getProfile(): Promise<ProfileSummary> {
   return requestJson<ProfileSummary>('/api/profile', {
