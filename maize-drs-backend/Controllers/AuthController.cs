@@ -80,10 +80,10 @@ namespace maize_drs_backend.Controllers
                 return Unauthorized("Invalid credentials");
             }
 
-            if (!user.IsApproved)
-            {
-                return StatusCode(StatusCodes.Status403Forbidden, CreatePendingApprovalResponse(user.Email ?? email));
-            }
+            // if (!user.IsApproved)
+            // {
+            //     return StatusCode(StatusCodes.Status403Forbidden, CreatePendingApprovalResponse(user.Email ?? email));
+            // }
 
             var token = await _jwtService.CreateJwtTokenAsync(user);
             var role = await _jwtService.GetPrimaryRoleAsync(user);
@@ -95,14 +95,14 @@ namespace maize_drs_backend.Controllers
             });
         }
 
-        private static PendingAuthResponseDto CreatePendingApprovalResponse(string email)
-        {
-            return new PendingAuthResponseDto
-            {
-                Email = email,
-                Status = PendingApprovalStatus,
-                Message = PendingApprovalMessage
-            };
-        }
+        // private static PendingAuthResponseDto CreatePendingApprovalResponse(string email)
+        // {
+        //     return new PendingAuthResponseDto
+        //     {
+        //         Email = email,
+        //         Status = PendingApprovalStatus,
+        //         Message = PendingApprovalMessage
+        //     };
+        // }
     }
 }
