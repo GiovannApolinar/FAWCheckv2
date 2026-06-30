@@ -159,19 +159,19 @@ export interface PendingAuthResponse {
   message: string;
 }
 
-export interface PendingUserSummary {
-  userId: string;
-  email: string;
-  registeredAtUtc: string;
-}
+// export interface PendingUserSummary {
+//   userId: string;
+//   email: string;
+//   registeredAtUtc: string;
+// }
 
-export interface ApprovedUserSummary {
-  userId: string;
-  email: string;
-  registeredAtUtc: string;
-  approvedAtUtc: string;
-  approvedByUserId?: string | null;
-}
+// export interface ApprovedUserSummary {
+//   userId: string;
+//   email: string;
+//   registeredAtUtc: string;
+//   approvedAtUtc: string;
+//   approvedByUserId?: string | null;
+// }
 
 export interface ProfileSummary {
   userId: string;
