@@ -69,7 +69,6 @@ export type Translations = {
   auth_toggle_to_login: string;
   auth_toggle_signup_label: string;
   auth_toggle_login_label: string;
-  toast_signup_sent: string;
   toast_login_success: string;
   toast_auth_failed: string;
   toast_forgot_password: string;

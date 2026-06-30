@@ -70,13 +70,12 @@ const tl: Translations = {
   auth_submit_login: 'Mag-sign In',
   auth_submit_signup: 'Humiling ng Access',
   auth_forgot_password: 'Nakalimutan ang password?',
-  auth_signup_pending_note:
-    'Ang mga kahilingang account ay nananatiling nakabinbin hanggang sa aprubahan ng administrator.',
   auth_toggle_to_signup: 'Wala pang account?',
   auth_toggle_to_login: 'Mayroon nang account?',
   auth_toggle_signup_label: 'Mag-sign Up',
   auth_toggle_login_label: 'Mag-sign In',
   toast_login_success: 'Matagumpay na naka-login!',
+  toast_signup_sent: 'Naipadala na ang iyong kahilingan sa pag-sign up.',
   toast_auth_failed: 'Nabigo ang pagpapatunay.',
   toast_forgot_password:
     'Hindi pa available ang pag-reset ng password. Makipag-ugnayan sa administrator ng proyekto.',
