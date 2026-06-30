@@ -234,20 +234,6 @@ export type Translations = {
   toast_account_delete_failed: string;
   toast_account_delete_offline: string;
 
-  // Admin page
-  admin_checking_access: string;
-  admin_label: string;
-  admin_heading: string;
-  admin_description: string;
-  admin_loading_online: string;
-  admin_loading_offline: string;
-  admin_no_pending: string;
-  admin_requested_on: string;
-  admin_btn_approving: string;
-  admin_btn_approve: string;
-  admin_approved_prefix: string;
-  toast_admin_approve_offline: string;
-
   // About page
   about_label: string;
   about_heading: string;

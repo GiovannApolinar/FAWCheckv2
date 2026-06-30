@@ -257,21 +257,6 @@ const en: Translations = {
   toast_account_delete_failed: 'Failed to delete your account.',
   toast_account_delete_offline: 'Account deletion is available once you are back online.',
 
-  // Admin page
-  admin_checking_access: 'Checking admin access...',
-  admin_label: 'Admin review',
-  admin_heading: 'Pending user approvals',
-  admin_description:
-    'Approve sign-up requests here to let new users log in and start submitting assessments.',
-  admin_loading_online: 'Loading pending sign-ups...',
-  admin_loading_offline: 'Admin validation is available once you are back online.',
-  admin_no_pending: 'No pending sign-up requests right now.',
-  admin_requested_on: 'Requested access on',
-  admin_btn_approving: 'Approving...',
-  admin_btn_approve: 'Approve',
-  admin_approved_prefix: 'Approved',
-  toast_admin_approve_offline: 'User approval is available once you are back online.',
-
   // About page
   about_label: 'About the project',
   about_heading: 'FAWCheck',

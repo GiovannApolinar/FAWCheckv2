@@ -264,22 +264,6 @@ const tl: Translations = {
   toast_account_delete_offline:
     'Ang pagtanggal ng account ay makukuha kapag nakabalik ka sa online.',
 
-  // Admin page
-  admin_checking_access: 'Sinusuri ang admin access...',
-  admin_label: 'Pagsusuri ng admin',
-  admin_heading: 'Mga nakabinbing pag-apruba ng gumagamit',
-  admin_description:
-    'Aprubahan ang mga kahilingang mag-sign up dito para payagan ang mga bagong gumagamit na mag-login at magsimulang magsumite ng mga pagtatasa.',
-  admin_loading_online: 'Nilo-load ang mga nakabinbing sign-up...',
-  admin_loading_offline: 'Ang pag-validate ng admin ay makukuha kapag nakabalik ka sa online.',
-  admin_no_pending: 'Walang mga nakabinbing kahilingang mag-sign up sa ngayon.',
-  admin_requested_on: 'Hiniling ang access noong',
-  admin_btn_approving: 'Inaaprubahan...',
-  admin_btn_approve: 'Aprubahan',
-  admin_approved_prefix: 'Na-approve na',
-  toast_admin_approve_offline:
-    'Ang pag-apruba ng gumagamit ay makukuha kapag nakabalik ka sa online.',
-
   // About page
   about_label: 'Tungkol sa proyekto',
   about_heading: 'FAWCheck',
