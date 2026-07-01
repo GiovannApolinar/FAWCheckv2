@@ -18,7 +18,6 @@ const navItems: readonly NavItem[] = [
   { href: '/', labelKey: 'nav_home' },
   { href: '/assessment', labelKey: 'nav_assessment' },
   { href: '/saved', labelKey: 'nav_records' },
-  { href: '/admin', labelKey: 'nav_validate', adminOnly: true },
   { href: '/profile', labelKey: 'nav_profile' },
   { href: '/about', labelKey: 'nav_about' },
   { href: '/settings', labelKey: 'nav_settings' },
