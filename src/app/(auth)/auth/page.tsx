@@ -106,7 +106,6 @@ function AuthPageContent() {
       if (!isLogin) {
         setPassword('');
         setIsLogin(true);
-        toast.success(pendingPayload?.message || t('toast_signup_sent'));
         return;
       }
 
@@ -271,11 +270,7 @@ function AuthPageContent() {
                       >
                         {t('auth_forgot_password')}
                       </button>
-                    ) : (
-                      <p className="text-xs leading-5 text-neutral-500">
-                        {t('auth_signup_pending_note')}
-                      </p>
-                    )}
+                    ) : null}
                   </form>
                 </div>
 

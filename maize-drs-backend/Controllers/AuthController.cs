@@ -11,8 +11,8 @@ namespace maize_drs_backend.Controllers
     [Route("api/auth")]
     public class AuthController : ControllerBase
     {
-        private const string PendingApprovalStatus = "pending_approval";
-        private const string PendingApprovalMessage = "Your account is awaiting admin approval.";
+        // private const string PendingApprovalStatus = "pending_approval";
+        // private const string PendingApprovalMessage = "Your account is awaiting admin approval.";
 
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly JwtService _jwtService;
@@ -45,7 +45,8 @@ namespace maize_drs_backend.Controllers
                 Email = email,
                 EmailConfirmed = true,
                 RegisteredAtUtc = DateTime.UtcNow,
-                IsApproved = false
+                IsApproved = true, // removed admin approval requirement for testing purposes
+                ApprovedAtUtc = DateTime.UtcNow,
             };
 
             var createResult = await _userManager.CreateAsync(user, dto.Password);
@@ -54,7 +55,11 @@ namespace maize_drs_backend.Controllers
                 return BadRequest(string.Join(" ", createResult.Errors.Select(error => error.Description)));
             }
 
-            return Accepted(CreatePendingApprovalResponse(user.Email ?? email));
+            return Ok(new AuthenticationResponseDto
+            {
+                Email = user.Email ?? email,
+                Status = "success"
+            });
         }
 
         [AllowAnonymous]
@@ -79,10 +84,10 @@ namespace maize_drs_backend.Controllers
                 return Unauthorized("Invalid credentials");
             }
 
-            if (!user.IsApproved)
-            {
-                return StatusCode(StatusCodes.Status403Forbidden, CreatePendingApprovalResponse(user.Email ?? email));
-            }
+            // if (!user.IsApproved)
+            // {
+            //     return StatusCode(StatusCodes.Status403Forbidden, CreatePendingApprovalResponse(user.Email ?? email));
+            // }
 
             var token = await _jwtService.CreateJwtTokenAsync(user);
             var role = await _jwtService.GetPrimaryRoleAsync(user);
@@ -94,14 +99,14 @@ namespace maize_drs_backend.Controllers
             });
         }
 
-        private static PendingAuthResponseDto CreatePendingApprovalResponse(string email)
-        {
-            return new PendingAuthResponseDto
-            {
-                Email = email,
-                Status = PendingApprovalStatus,
-                Message = PendingApprovalMessage
-            };
-        }
+        // private static PendingAuthResponseDto CreatePendingApprovalResponse(string email)
+        // {
+        //     return new PendingAuthResponseDto
+        //     {
+        //         Email = email,
+        //         Status = PendingApprovalStatus,
+        //         Message = PendingApprovalMessage
+        //     };
+        // }
     }
 }

@@ -68,13 +68,10 @@ const en: Translations = {
   auth_submit_login: 'Sign In',
   auth_submit_signup: 'Request Access',
   auth_forgot_password: 'Forgot password?',
-  auth_signup_pending_note:
-    'Account requests remain pending until an administrator approves access.',
   auth_toggle_to_signup: "Don't have an account?",
   auth_toggle_to_login: 'Already have an account?',
   auth_toggle_signup_label: 'Sign Up',
   auth_toggle_login_label: 'Sign In',
-  toast_signup_sent: 'Your sign-up request has been sent for admin approval.',
   toast_login_success: 'Logged in successfully!',
   toast_auth_failed: 'Authentication failed.',
   toast_forgot_password:
